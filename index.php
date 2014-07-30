@@ -297,7 +297,7 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	$pC = round($pp);
 	$pracC = round(100-$kocztyNiepracownicze);
 	$uZoPc = round(100*$ulamekZatrudnionychUmowaOPrace);
-	obnizenie('procentowo', $pp*$ulamekZatrudnionychUmowaOPrace*(100-$kocztyNiepracownicze)/100, 100, &$kwota, 'Koszty zatrudniena pracownika', "Szacujê, ze oko³o $pracC % kosztów pracodawcy to koszty zwi±zane z wynagrodzeniami (Uwaga: warto¶æ wyssana z palca: potrzebujê ¼ród³a) Z tego $uZoPc % to umowy o pracê (¼ród³o: <a href='http://www.bankier.pl/wiadomosc/Umowy-smieciowe-to-mit-Pracuje-na-nich-tylko-600-tys-osob-2794604.html' >bankier.pl</a>).<br/>"
+	obnizenie('procentowo', $pp*$ulamekZatrudnionychUmowaOPrace*(100-$kocztyNiepracownicze)/100, 100, &$kwota, 'Koszty zatrudnienia pracownika', "Szacujê, ze oko³o $pracC % kosztów pracodawcy to koszty zwi±zane z wynagrodzeniami (Uwaga: warto¶æ wyssana z palca: potrzebujê ¼ród³a) Z tego $uZoPc % to umowy o pracê (¼ród³o: <a href='http://www.bankier.pl/wiadomosc/Umowy-smieciowe-to-mit-Pracuje-na-nich-tylko-600-tys-osob-2794604.html' >bankier.pl</a>).<br/>"
 	."Oko³o $pC % tego, co wydaja na umowy o pracê to s± ró¿ne sk³adki na ZUS po stronie pracodawcy (z <a href='http://prawo.rp.pl/temat/846545.html'>kalkulatorów wynagrodzenia dla pracowawcy np. prawo.rp.pl</a>)", $netto_r);
 	obnizenie('procentowo', $kocztyBiurokratyczne, 100, &$kwota, 'Koszty ksiêgowe i biurokratyczne', "Po uproszczeniu przepisów podatkowych spadn± znacznie koszty firm. Wiêkszo¶æ Przedsiêbiorstw nie bêdzie musia³a ponosiæ kosztów ksiêgowych, nie bêdzie obci±¿ana obowi±zkami sprawozdawczymi itp. Szacujê ¿e koszty spadn± o $kocztyBiurokratyczne% (Uwaga: Warto¶æ t± wzi±³em z subiektywnych obserwacji - nie mam ¼ród³a)", $netto_r);
 	
@@ -353,20 +353,20 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	
 	
 	echo "<H1 style='text-align:center'> Kalkulator wynagrodzeñ Nowej Prawicy </H1>";
-	echo "<table width ='100%' height='70%'>";
-	echo "<tr><td width='50%' height='30%'>";
+	echo "<table>";
+	echo "<tr><td width='50%' rowspan='1'>";
 	echo "<font style='font-size:24'>Je¶li zarabiasz netto $netto z³</font><font style='font-size:24'> i masz rodzinê $dorosli+$dzieci </font><br/><font style='font-size:30'>to oferujê Ci podwy¿kê <b>$zyskNaCenyR z³</b></font>"; 
 	echo "<br/><font style='font-size:20'> z samej tylko obni¿ki podatków i deregulacji zawodów, czyli po wprowadzeniu <a href='http://www.nowaprawicajkm.pl/info/program-wyborczy/program-kongresu-nowej-prawicy/item/program-kongresu-nowej-prawicy'>programu gospodarczego Kongresu Nowej Prawicy</a></font>"; 
 	echo "<br/>(Powyzsza kwota zosta³a przeliczona na dzisiejsz± warto¶æ z³otówki. Wyja¶nienie poni¿ej)";
 	
-	echo "</td><td>";
+	echo "</td><td rowspan='2' style='vertical-align:top;'>";
 	wypiszInputy();
-	echo "</td></tr>";
-	echo "<tr><td width='50%' height='70%' rowspan='2'>";
-	echo "Uzasadnienie:<table style='border-style:outset'><tr style='border-bottom-style:solid;'><th colspan='2'>TERAZ</th></tr>";
+	echo "</td></tr>"; //<tr></tr>
+	echo "<tr><td rowspan='2'>";
+	echo "Uzasadnienie:<table style='border-style:outset'><tr style='border-bottom-style:solid;'><th colspan='2'>TERAZ</th></tr>"; //
 	echo $doWypisania;
 	echo "</table>";
-	echo "</td><td width='50%' height='40%'><div id='komentarz' style='vertical-align:middle'></div></td></tr>";
+	echo "</td></tr><tr><td width='50%' style='vertical-align: middle;'><div id='komentarz' style='vertical-align:middle'></div></td></tr>";
 	//echo "<tr><td>";
 	//echo "</td></tr>";
 	echo "</table>";
