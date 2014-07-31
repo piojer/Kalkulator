@@ -381,7 +381,7 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	echo "<li><b>¦redni procent kosztów na biurokracjê (ksiêgowe, kontakty z ksiêgowo¶ci±, papiery do urzedów itp. - Za³o¿y³em, ¿e jest to 5%)</b></li>";
 	echo "<li><b>Oszacowanie, ile ¶rednio kupujemy produktów ograniczonych licencjami, pozwoleniami, sztucznymi monpolami (oligopolami) (Za³o¿y³em, ¿e po³owê miesiêcznych wydatków wydajemy na takie produkty, których ceny s± przez to zawy¿one ¶rednio o 50%)</b></li>";
 	echo "<li>Koszty leczenia w prywatnych szpitalach (Za³o¿y³em, ¿e jest 1000z³ co 3 lata + 35 tys.z³ raz na 50 lat)</li>";
-	echo "<li>Ile przypada uczniów na 1 nauczyciela (Za³o¿y³em, ¿e jest 1000z³ co 3 lata + 35 tys.z³ raz na 50 lat)</li>";
+	echo "<li>Ile przypada³oby uczniów na 1 nauczyciela (Gdyby nauczyciel nie marnotrawi³ 1/3 czasu na papierkologiê - za³o¿y³em, ¿e 15)</li>";
 	
 	echo "Pozosta³e parametry:<br/>";
 	echo "<li>Zatrudnienie specialisty 5000 z³/mies</li>";
