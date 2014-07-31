@@ -65,6 +65,7 @@ $osoby = $dorosli + $dzieci;
 function wypiszInputy(){
 	echo "<form method='GET'><table>";
 	wypiszInput('Zarobki miesieczne netto na etacie i zleceniu ca³ej rodziny', 'netto', '');
+	wypiszInput('Zarobki miesieczne netto na umowie o dzie³o', 'nettod', '');
 	wypiszInput('Szacunkowa warto¶æ Twoich nieruchomo¶ci', 'nier', '');
 	wypiszInput('Zwrot podatku w tym roku', 'zwrot', 'z minusem, jesli dop³ata');
 	wypiszInput('Pomoc socialna pañstwowa, zasi³ki i ulgi podatkowe', 'pomoc', 'i ulgi podatkowe miesiecznie');
@@ -240,14 +241,15 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	if ($zwrot == '') $zwrot = 0;
 	if ($pomoc == '') $pomoc = 0;
 	
-	$netto_r = $zwrot/12 + $netto + $pomoc + $prywatna;
+	$netto_r = $zwrot/12 + $netto + $pomoc + $prywatna + $nettod;
 	
 	$brutto = $netto*1.435 - 95;
+	$brutto += $nettod*1.19;
 	
 	
 	$noweKoszty = false;
 	wypisz("Twój przychód miesiêczny", $netto_r, "Do wynagrodzenia netto dodane s±: pomoc socialna, zwrot i ulgi w podatku");
-	wypisz("Twoje wynagrodzenie brutto", $brutto, "Wziête z kalkulatorów wynagrodzenia brutto-netto");
+	wypisz("Twoje wynagrodzenie brutto", $brutto, "Wziête z kalkulatorów wynagrodzenia brutto-netto: <br/> netto z umów o pracê i umów zlecenie jest mno¿one razy 1.435 i odejmowane 95 z³.<br/> netto z umowy o dzie³o jest mno¿one razy 1.19");
 	
 	wypisz("<b>Za Nowej Prawicy</b>", "", "");
 	/*
@@ -355,7 +357,8 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	echo "<H1 style='text-align:center'> Kalkulator wynagrodzeñ Nowej Prawicy </H1>";
 	echo "<table>";
 	echo "<tr><td width='50%' rowspan='1'>";
-	echo "<font style='font-size:24'>Je¶li zarabiasz netto $netto z³</font><font style='font-size:24'> i masz rodzinê $dorosli+$dzieci </font><br/><font style='font-size:30'>to oferujê Ci podwy¿kê <b>$zyskNaCenyR z³</b></font>"; 
+	$n = $netto + $nettod;
+	echo "<font style='font-size:24'>Je¶li zarabiasz netto $n z³</font><font style='font-size:24'> i masz rodzinê $dorosli+$dzieci </font><br/><font style='font-size:30'>to oferujê Ci podwy¿kê <b>$zyskNaCenyR z³</b></font>"; 
 	echo "<br/><font style='font-size:20'> z samej tylko obni¿ki podatków i deregulacji zawodów, czyli po wprowadzeniu <a href='http://www.nowaprawicajkm.pl/info/program-wyborczy/program-kongresu-nowej-prawicy/item/program-kongresu-nowej-prawicy'>programu gospodarczego Kongresu Nowej Prawicy</a></font>"; 
 	echo "<br/>(Powyzsza kwota zosta³a przeliczona na dzisiejsz± warto¶æ z³otówki. Wyja¶nienie poni¿ej)";
 	
