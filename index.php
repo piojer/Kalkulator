@@ -72,13 +72,14 @@ function wypiszInputy(){
 	wypiszInput('Pomoc z fundacji/rodziny', 'prywatna', '');
 	wypiszInput('Ilo¶æ doros³ych w rodzinie', 'dorosli', '³±cznie z Tob±');
 	wypiszInput('Ilo¶æ dzieci w rodzinie', 'dzieci', '');
-	echo "</table><table><tr><td><input type='submit' value='przelicz' style='height:100%'>";
-	echo "</td><td>zapisane:</td><td><input type='submit' value='minimalna krajowa' name='minimalna'>";
-	echo "<input type='submit' value='najczêstsze (dominanta)' name='dominanta'>";
-	echo "<input type='submit' value='mediana wynagrodzeñ' name='mediana'>";
-	echo "<input type='submit' value='¶rednia' name='srednia'>";
-	echo "<br/><input type='submit' name='niep' value='teraz na czasie: rodzina z niepe³nosprawnym dzieckiem'>";
-	echo "<input type='submit' name='wielodzietna' value='rodzina wielodzietna'>";
+	echo "</table><table><tr><td style='height:100%'><input type='submit' value='przelicz' style='height:100%;font-size:18px;padding:30px'>";
+	$f = "style='font-size:12px'";
+	echo "</td><td $f>zapisane: <input type='submit' value='minimalna krajowa' name='minimalna' $f>";
+	echo "<input type='submit' value='najczêstsze (dominanta)' name='dominanta' $f>";
+	echo "<input type='submit' value='mediana wynagrodzeñ' name='mediana' $f>";
+	echo "<input type='submit' value='¶rednia' name='srednia' $f>";
+	echo "<br/><input type='submit' name='niep' value='teraz na czasie: rodzina z niepe³nosprawnym dzieckiem' $f>";
+	echo "<input type='submit' name='wielodzietna' value='rodzina wielodzietna' $f>";
 	echo "</td></tr></table></form>";
 }
 
