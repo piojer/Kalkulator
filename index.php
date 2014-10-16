@@ -72,7 +72,7 @@ function wypiszInputy(){
 	wypiszInput('Pomoc z fundacji/rodziny', 'prywatna', '');
 	wypiszInput('Ilo¶æ doros³ych w rodzinie', 'dorosli', '³±cznie z Tob±');
 	wypiszInput('Ilo¶æ dzieci w rodzinie', 'dzieci', '');
-	echo "</table><table><tr><td><input type='submit' value='przelicz'>";
+	echo "</table><table><tr><td><input type='submit' value='przelicz' style='height:100%'>";
 	echo "</td><td>zapisane:</td><td><input type='submit' value='minimalna krajowa' name='minimalna'>";
 	echo "<input type='submit' value='najczêstsze (dominanta)' name='dominanta'>";
 	echo "<input type='submit' value='mediana wynagrodzeñ' name='mediana'>";
@@ -353,8 +353,8 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	wypisz("<b><font style='font-size:18'>Twój miesiêczny zysk na dzisiejsze ceny</font></b>", "<b><font style='font-size:20'>$zyskNaCenyR z³</font></b>", 
 	"Kwota $zyskR z³ bêdzie warta wiêcej, ni¿ dzisiaj, gdy¿ ¶redno ceny bêd± mia³y warto¶æ $spadekCenNapis dzisiejszych. <br/> Aby uzyskaæ prawdziw± warto¶æ tych pieniêdzy dzielê je przez $spadekCenNapis. <br/><br/><b>Za $zyskR z³ bêdzie mo¿na kupiæ tyle dóbr, ile dzi¶ za $zyskNaCenyR z³.</b>");
 	
-	
-	echo "<H1 style='text-align:center'> Kalkulator wynagrodzeñ Nowej Prawicy </H1>";
+	echo "<H3 style='text-align:center;background-color:yellow'> Wersja testowa. Proszê o komentarze: piotr.jerzykowski@gmail.com </H3>";
+	echo "<H1 style='text-align:center'> Kalkulator wynagrodzeñ za Nowej Prawicy </H1>";
 	echo "<table>";
 	echo "<tr><td width='50%' rowspan='1'>";
 	$n = $netto + $nettod;
