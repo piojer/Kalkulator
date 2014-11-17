@@ -355,12 +355,23 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	"Kwota $zyskR z³ bêdzie warta wiêcej, ni¿ dzisiaj, gdy¿ ¶redno ceny bêd± mia³y warto¶æ $spadekCenNapis dzisiejszych. <br/> Aby uzyskaæ prawdziw± warto¶æ tych pieniêdzy dzielê je przez $spadekCenNapis. <br/><br/><b>Za $zyskR z³ bêdzie mo¿na kupiæ tyle dóbr, ile dzi¶ za $zyskNaCenyR z³.</b>");
 	
 	echo "<H3 style='text-align:center;background-color:yellow'> Wersja testowa. Proszê o komentarze: piotr.jerzykowski@gmail.com </H3>";
-	echo "<H1 style='text-align:center'> Kalkulator wynagrodzeñ za Nowej Prawicy </H1>";
+	echo "<H1 style='text-align:center'> Kalkulator wynagrodzeñ po obni¿ce podatków  </H1>";
 	echo "<table>";
 	echo "<tr><td width='50%' rowspan='1'>";
 	$n = $netto + $nettod;
-	echo "<font style='font-size:24'>Je¶li zarabiasz netto $n z³</font><font style='font-size:24'> i masz rodzinê $dorosli+$dzieci </font><br/><font style='font-size:30'>to oferujê Ci podwy¿kê <b>$zyskNaCenyR z³</b></font>"; 
-	echo "<br/><font style='font-size:20'> z samej tylko obni¿ki podatków i deregulacji zawodów, czyli po wprowadzeniu <a href='http://www.nowaprawicajkm.pl/info/program-wyborczy/program-kongresu-nowej-prawicy/item/program-kongresu-nowej-prawicy'>programu gospodarczego Kongresu Nowej Prawicy</a></font>"; 
+	echo "<font style='font-size:24'>Je¶li zarabiasz netto $n z³</font><font style='font-size:24'> i masz rodzinê $dorosli+$dzieci </font><br/><font style='font-size:30'>to oferujê Ci ";
+	if ($zyskNaCenyR >= 0) echo " podwy¿kê <b>+$zyskNaCenyR z³</b></font>";
+	else echo " obni¿kê <b>$zyskNaCenyR z³</b></font>";
+	
+	echo "<br/><font style='font-size:20'> z samej tylko obni¿ki podatków i deregulacji zawodów, czyli: jedna stawka VAT 15%, usuniêcie PIT i CIT wg. <a href='http://www.nowaprawicajkm.pl/info/program-wyborczy/program-kongresu-nowej-prawicy/item/program-kongresu-nowej-prawicy'>programu gospodarczego Kongresu Nowej Prawicy</a></font>";
+	
+	$os = round($n / ($dorosli+$dzieci));
+	if ($os < 350)
+		echo "<div style='color:red'>Jak Ci siê udaje wy¿yæ za $os z³/osobê?</div>";
+		
+	
+	//echo "<br/><font style='font-size:20'> z samej tylko obni¿ki podatków i deregulacji zawodów, czyli po wprowadzeniu <a href='http://www.nowaprawicajkm.pl/info/program-wyborczy/program-kongresu-nowej-prawicy/item/program-kongresu-nowej-prawicy'>programu gospodarczego Kongresu Nowej Prawicy</a></font>"; 
+	
 	echo "<br/>(Powyzsza kwota zosta³a przeliczona na dzisiejsz± warto¶æ z³otówki. Wyja¶nienie poni¿ej)";
 	
 	echo "</td><td rowspan='2' style='vertical-align:top;'>";
