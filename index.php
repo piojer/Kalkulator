@@ -4,7 +4,7 @@
 		document.getElementById('komentarz').innerHTML = text;
 	}
 	function pokarze(id){
-		document.getElementById('komentarz').innerHTML = document.getElementById(id).innerHTML;
+		document.getElementById('komentarz').innerHTML = document.getElementById(id).innerHTML+"\n\n\n";
 	}
 </script>
 <style>
@@ -290,8 +290,8 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	Wcze¶niej firmy wyworz±ce ¶mieci dogadywa³y siê bezpo¶redno z nami, wiêc dba³y o niskie ceny i zadowolenie klienta. 
 	Teraz dogaduj± siê raz z urzêdem i maj± monopol na obszarze miasta/gminy. O ile ceny wzros³y? W Katowicach o prawie 100%. <br/>
 	Jakie produkty s± ograniczone? <br/>
-	- Produkty spo¿ywcze (czyli 26% produktów jak z VATu), <br/> 
-	- Budowlane (trzeba mieæ pozwolenia na budowê), <br/>
+	- Produkty spo¿ywcze (czyli 23% produktów jak z VATu), <br/> 
+	- Budowlane (trzeba mieæ pozwolenia na budowê), wiêc koszty mieszkañ i czynsze te¿<br/>
 	- Samochody (dopuszczenie do ruchu), <br/>
 	- Media (Pr±d - op³aty za przesy³ energii zmonopolizowane, Wêgiel - kopalnie pañstwowe, Ropa,Gaz - import wynegocjowany politycznie), <br/>
 	- itp. <br/> Szacujê, ¿e:
@@ -377,13 +377,13 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 	echo "</td><td rowspan='2' style='vertical-align:top;'>";
 	wypiszInputy();
 	echo "</td></tr>"; //<tr></tr>
-	echo "<tr><td rowspan='2'>";
+	echo "<tr><td rowspan='5'>";
 	echo "Uzasadnienie:<table style='border-style:outset'><tr style='border-bottom-style:solid;'><th colspan='2'>TERAZ</th></tr>"; //
 	echo $doWypisania;
 	echo "</table>";
-	echo "</td></tr><tr><td width='50%' style='vertical-align: middle;'><div id='komentarz' style='vertical-align:middle'></div></td></tr>";
-	//echo "<tr><td>";
-	//echo "</td></tr>";
+	echo "</td></tr><tr><td width='50%' style='padding-bottom:200;padding-top:100'><div id='komentarz'></div></td></tr>";
+	//style='vertical-align:middle;' style='vertical-align:middle;margin:100,0'
+	
 	echo "</table>";
 	echo "<br/>Dotyczy osób rzetelnie wykonuj±cych potrzebn± pracê. 
 		(Osoby zatrudnione dla celów biurokracji mog± dostaæ takie wynagrodzenie po przekwalifikowaniu siê)<br/>
