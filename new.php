@@ -348,6 +348,7 @@ function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $koment
 
 class Podatek{
 	public $nazwa;
+	public $grupa;
 	public $komentarz;
 	public $parametr;
 	public $sprzezenie;
@@ -355,7 +356,8 @@ class Podatek{
 		return 0;
 	}
 	
-	public function __construct($nazwa , $komentarz, $param){
+	public function __construct($grupa, $nazwa , $komentarz, $param){
+		$this->grupa = $grupa; 
 		$this->nazwa = $nazwa; 
 		$this->komentarz = $komentarz;
 		$this->parametr = $param;
@@ -522,13 +524,13 @@ echo "<table class='ramka'>";
 wiersz("P³aci pracodawca<br/><b>(prawdziwe brutto)</b>", $brutto);
 wiersz("Koszty pracodawcy ZUS " . rozwiniecie('pracod'), $podPrac); // "Koszty pracodawcy "
 echo "<tbody class='rozwiniecie' id='pracod' visibility='hidden'>";
-foreach ($podatkiPrac as $p) 
+foreach ($podatkiPrac as $p)
 	wiersz($p->nazwa, $p->licz($netto));
 echo "</tbody>";
 wiersz("Brutto", $netto + $podDoWyn);
 wiersz("Sk³adki na ZUS " . rozwiniecie('pracow'), $podDoWyn); //"Sk³adki po stronie pracownika "
 echo "<tbody class='rozwiniecie' id='pracow' visibility='hidden'>";
-foreach ($podatkiDoWyn as $p) 
+foreach ($podatkiDoWyn as $p)
 	wiersz($p->nazwa, $p->licz($netto));
 echo "</tbody>";
 wiersz("Netto", $netto);
@@ -548,7 +550,7 @@ foreach ($wydatki as $wyd){
 	//wiersz($wyd->nazwa, $wyd->kwotaNetto);
 }
 wiersz("<b>Prawdziwe netto</b>", $sumaNetto);
-
+wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $sumaNetto/$brutto)).'%', "");
 echo "</table>";
 
 // 286 roboczogodzin roczie na dope³nienie obowi±zków zwi±zanych z podatkami: https://www.facebook.com/czerwonatasma/photos/a.395300367316115.1073741828.370459393133546/435449533301198/?type=1&fref=nf
