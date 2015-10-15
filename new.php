@@ -42,31 +42,12 @@
 </style>
 </head><body>
 <?php
-
+include "kalkulator.php";
 
 function rozwiniecie($id){
 	return "<a id='przyc_$id' class='rozwiniecie' onclick='rozwin(\"$id\", \"przyc_$id\")'>(+)</a>";
 }
 
-// Parametry
-$kocztyNiepracownicze = 40;
-$ulamekZatrudnionychUmowaOPrace = 12.5/13.2;
-$kocztyBiurokratyczne = 5;
-$podNier=0.001;
-
-$wynagrodzenieSpec = 5000;
-$wynagrodzeniePomoc = 2500;
-$remontySali = 2000;
-$zysk = 1.1;
-$nauczycielNaIleUczniów = 15;
-$pomocNaIleUczniów = 50;
-
-$kosztWizytyWszpitalu = 1000;
-$czestotliwosc = 3*12;
-$kosztWizytyWszpitalu2 = 35000;
-$czestotliwosc2 = 50*12;
-
-$doWypisania = '';
 
 if (!isset($_GET['netto'])) $_GET['mediana'] = true;
 
@@ -94,8 +75,12 @@ if (isset($_GET['minimalna'])) {
 	$podTytul = "(Na utrzymaniu rodzina 2+1)";
 	$_GET = Array('netto' => 1600+1237, 'nier' => 200000, 'zwrot' => 1000, 'dorosli' => 2, 'dzieci' => 4, 'pomoc' => (106*4+80*2), 'prywatna'=>0);
 }
+
+
 extract($_GET);
 $osoby = $dorosli + $dzieci;
+
+
 
 function wypiszInputy(){
 	echo "<form method='GET'><table>";
@@ -118,281 +103,7 @@ function wypiszInputy(){
 	echo "</td></tr></table></form>";
 }
 
-function myround($a){
-	$b = round($a);
-	if (abs($b) < 10) {
-		
-		$poziom = 1;
-		do {
-			$b = round($a, $poziom);
-			$poziom++;
-		} while (abs($b) == 0);
-		$b = round($a, $poziom);
-	}
-	//echo "myround($a) = $b<br/>";
-	return $b;
-}
 
-function wypiszInput($tekst, $pole, $komentarz=''){
-	$v= "";
-	if (isset($_GET[$pole])) 
-		$v = $_GET[$pole];
-	echo "<tr><td onmouseover='pokarz(\"$komentarz\")'>$tekst: </td><td><input type='text' name='$pole' value='$v'/></td></tr>";
-}
-
-
-
-$nrDoWypisz = 1;
-/*function wypisz($tekst, $wartosc, $komentarz=''){
-	global $nrDoWypisz, $doWypisania;
-	if (is_numeric($wartosc)) {
-		$wartosc = round($wartosc, 0);
-		$wartosc .= ' z³';
-	}
-	$mouse = "onmouseover=\"pokarze('w$nrDoWypisz')\"";
-	$doWypisania .=  "<tr><td colspan='2' $mouse>$tekst: </td><td $mouse><b>$wartosc</b></td></tr>";
-	$doWypisania .= "<td style='visibility:hidden;position:absolute' id='w$nrDoWypisz'>$komentarz</td></tr>";
-	$nrDoWypisz++;
-}*/
-
-function jakVat($kwota, $procent, &$tekst, &$za){
-	
-	$procent += 1;
-	$p = myround($procent*100);
-	$k = round($kwota, 0);
-	
-	$tekst = "Czyli kwota $k z³ stanowi $p% kwoty, która by by³a wydawana, gdyby nie by³o tego 'podatku'";
-	$za = "%";
-	return $kwota/($procent);
-}
-
-function procentowo($kwota, $procent, &$tekst, &$za){
-	$p = $procent*100;
-	$p = round($p, 1);
-	$k = round($kwota, 0);
-	$kk = round($kwota*$procent, 0);
-	if ($procent > 0)
-		$tekst = "Czyli od kwoty $k z³ odliczamy $p% czyli $kk z³";
-	else {
-		$p = -$p;
-		$kk = -$kk;
-		$tekst = "Czyli do kwoty $k z³ doliczamy $p% czyli $kk z³";
-	}
-	$za = "%";
-	return $kwota*(1-$procent);
-}
-
-function kwotowo($kwota, $procent, &$tekst, &$za){
-	$procent *= 10000;
-	$k = round($kwota, 0);
-	$kk = round($procent, 0);
-	if ($procent > 0) {
-		$tekst = "Czyli od kwoty $k z³ odliczamy $kk z³";
-	} else {
-		$kk = -$kk;
-		$tekst = "Czyli do kwoty $k z³ doliczamy $kk z³";
-	}
-	$za = " z³";
-	return $kwota-$procent;
-}
-
-$indexObnizenie=1;
-$indexPodwyzszenie=1;
-function obnizenie_old($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $komentarz='', $pelnaKwota){
-	global $indexObnizenie, $indexPodwyzszenie, $doWypisania, $noweKoszty;
-	$tekst = '';
-	$za = '';
-	$k = $funkcja($kwota, $procent*$procentDotyczy/10000, $tekst, $za);
-	$r = $kwota-$k;
-	$kw = round($kwota, 0);
-	$kk = round($k, 0);
-	$prC = 100*(1 - $k/$kwota);
-	$kwota = $k;
-	
-	$sumaPod = 1-$kwota/$pelnaKwota;
-	$sumaPod*=100;
-	$sumaPod = round($sumaPod, 1);
-	$prC  = round($prC, 1);
-	
-	$kom = "<h3>$nazwa</h3><p>$komentarz</p><p>";
-	$procent = round($procent, 1);
-	
-	if ($procent < 0) {
-		$procent = -$procent;
-		$k = -$k;
-		$prC = -$prC;
-		if ($indexPodwyzszenie<2) {
-			$doWypisania .=  "<tr><th>podwy¿szenie cen</th><th>efektywny wzrost</th>";
-			$doWypisania .=  "<th>kwota</th><th>Ca³kowity spadek</th>";
-			$doWypisania .=  "</tr>";
-		}
-		$indexPodwyzszenie++;
-		$indexObnizenie++;
-		$tekstZaw = '¦rednio bêdziemy mieæ koszty';
-	} else {
-		if ($indexObnizenie<2) {
-			$doWypisania .=  "<tr><th>obni¿enie cen</th><th>efektywny spadek</th>";
-			$doWypisania .=  "<th>kwota</th><th>Ca³kowity spadek</th>";
-			$doWypisania .=  "</tr>";
-		}
-		$indexObnizenie++;
-		$tekstZaw = '¦rednio mamy zawy¿one koszty o';
-	}
-	if ($noweKoszty) $tekstZaw = 'Poniesiemy koszty równe oko³o';
-	
-	$p = $procentDotyczy*$procent;
-	$procentDotyczy = myround($procentDotyczy);
-	
-	
-	if ($za == ' z³') {
-		$procent = round($procent, 0);
-	$prC = $p = round($p, 0);
-		$kom .= "$tekstZaw $procentDotyczy razy $procent z³ czyli <b>$p z³</b>";
-	} else {
-		if ($procentDotyczy > 99) {
-			if (!$noweKoszty)
-				$kom .=	"¦rednio kupowane przez nas produkty maj± ";
-			else 
-				$kom .=	"¦rednio kupowane przez nas produkty bêd± mieæ ";
-		} else
-			$kom .=	"Oko³o <b>$procentDotyczy%</b> kupowanych przez nas produktów ma ";
-		$kom .=	"zwiêkszon± cenê o <b>$procent$za</b>";
-	}
-	$kom .=	"</p><p>$tekst</p>";
-	
-	$mouse = "onmouseover=\"pokarze('id$indexObnizenie')\"";
-	
-	
-	
-	$doWypisania .=  "<tr><td $mouse>- $nazwa: </td><td $mouse>$prC$za</td>";
-	$doWypisania .=  "<td $mouse class='kwota'><b>$kk z³</b></td><td $mouse>$sumaPod%</td>";
-	$doWypisania .=  "<td style='visibility:hidden;position:absolute' id='id$indexObnizenie'>$kom</td></tr>";
-	
-	
-	return $sumaPod;
-}
-
-function obnizenie($funkcja, $procent, $procentDotyczy, &$kwota, $nazwa, $komentarz='', $pelnaKwota){
-	global $indexObnizenie, $indexPodwyzszenie, $doWypisania, $noweKoszty;
-	$tekst = '';
-	$za = '';
-	$k = $funkcja($kwota, $procent*$procentDotyczy/10000, $tekst, $za);
-	$r = $kwota-$k;
-	$kw = round($kwota, 0);
-	$kk = round($k, 0);
-	$prC = 100*(1 - $k/$kwota);
-	$kwota = $k;
-	
-	$sumaPod = 1-$kwota/$pelnaKwota;
-	$sumaPod*=100;
-	$sumaPod = round($sumaPod, 1);
-	$prC  = round($prC, 1);
-	
-	$kom = "<h3>$nazwa</h3><p>$komentarz</p><p>";
-	$procent = round($procent, 1);
-	/*
-	if ($procent < 0) {
-		$procent = -$procent;
-		$k = -$k;
-		$prC = -$prC;
-		if ($indexPodwyzszenie<2) {
-			$doWypisania .=  "<tr><th>podwy¿szenie cen</th><th>efektywny wzrost</th>";
-			$doWypisania .=  "<th>kwota</th><th>Ca³kowity spadek</th>";
-			$doWypisania .=  "</tr>";
-		}
-		$indexPodwyzszenie++;
-		$indexObnizenie++;
-		$tekstZaw = '¦rednio bêdziemy mieæ koszty';
-	} else {
-		if ($indexObnizenie<2) {
-			$doWypisania .=  "<tr><th>obni¿enie cen</th><th>efektywny spadek</th>";
-			$doWypisania .=  "<th>kwota</th><th>Ca³kowity spadek</th>";
-			$doWypisania .=  "</tr>";
-		}
-		$indexObnizenie++;
-		$tekstZaw = '¦rednio mamy zawy¿one koszty o';
-	}
-	if ($noweKoszty) $tekstZaw = 'Poniesiemy koszty równe oko³o';
-	*/
-	//$p = $procentDotyczy*$procent;
-	//$procentDotyczy = myround($procentDotyczy);
-	
-	/*
-	if ($za == ' z³') {
-		$procent = round($procent, 0);
-	$prC = $p = round($p, 0);
-		$kom .= "$tekstZaw $procentDotyczy razy $procent z³ czyli <b>$p z³</b>";
-	} else {
-		if ($procentDotyczy > 99) {
-			if (!$noweKoszty)
-				$kom .=	"¦rednio kupowane przez nas produkty maj± ";
-			else 
-				$kom .=	"¦rednio kupowane przez nas produkty bêd± mieæ ";
-		} else
-			$kom .=	"Oko³o <b>$procentDotyczy%</b> kupowanych przez nas produktów ma ";
-		$kom .=	"zwiêkszon± cenê o <b>$procent$za</b>";
-	}
-	$kom .=	"</p><p>$tekst</p>";
-	
-	$mouse = "onmouseover=\"pokarze('id$indexObnizenie')\"";
-	*/
-	
-	
-	$doWypisania .=  "<tr><td $mouse>- $nazwa: </td><td $mouse>$prC$za</td>";
-	$doWypisania .=  "<td $mouse class='kwota'><b>$kk z³</b></td><td $mouse>$sumaPod%</td>";
-	$doWypisania .=  "<td style='visibility:hidden;position:absolute' id='id$indexObnizenie'>$kom</td></tr>";
-	
-	
-	return $sumaPod;
-}
-
-class Podatek{
-	public $nazwa;
-	public $grupa;
-	public $komentarz;
-	public $parametr;
-	public $sprzezenie;
-	public function licz($kwota) {
-		return 0;
-	}
-	
-	public function __construct($grupa, $nazwa , $komentarz, $param){
-		$this->grupa = $grupa; 
-		$this->nazwa = $nazwa; 
-		$this->komentarz = $komentarz;
-		$this->parametr = $param;
-	}
-}
-
-class PodatekProcentowy  extends Podatek{
-	public function licz($kwota){
-		return $kwota*($this->parametr)/100;
-	}
-}
-
-class PodatekLiniowyZKwota extends Podatek{
-	public $b;
-	public function __construct($grupa, $nazwa , $komentarz, $param, $b){
-		parent::__construct ($grupa, $nazwa , $komentarz, $param);
-		$this->b = $b; 
-	}
-	public function licz($kwota) {
-		return $kwota*$this->parametr + $this->b;
-	}
-}
-
-class PodatekJakVat  extends Podatek{
-	public function licz($kwota) {
-		return $kwota*($this->parametr/($this->parametr + 100));
-	}
-}
-
-class PodatekKwotowy extends Podatek{
-	public function licz($kwota) {
-		//echo "Kwota: " . $kwota . " podatek: ". $this->parametr;
-		return $this->parametr;
-	}
-}
 
 function wiersz($tekst, $kwota){
 	echo "<tr><td>$tekst</td><td colspan = \"2\">".myround($kwota)." z³</td></tr>";
@@ -405,150 +116,48 @@ function wiersz2p($tekst, $tekst1, $tekst2){
 	echo "<tr><td>$tekst</td><td>$tekst1</td><td class='dodatek'><div class='dodatek'>$tekst2</div></td></tr>";
 }
 
-class GrupaWydatkow{
-	public $podatki;
-	public $nazwa;
-	public $kwotaStosunek;
-	public $kwota;
-	public $kwotaNetto;
-	//public $komentarz;
-	public function __construct($nazwa, $podatki, $kwotaStosunek){
-		$this->nazwa = $nazwa; 
-		//$this->komentarz = $komentarz;
-		$this->podatki = $podatki;
-		$this->kwotaStosunek = $kwotaStosunek;
-	}
-}
+
+
 
 //Inicjowanie 
-///////////////////////////////////////////////////////////
-$podatkiOdWyn = array();
-$podatkiDoWyn = array();
-$podatkiPrac = array();
-$podatkiWZakupach = array();
-$wydatki = array();
-
-$komentarz = "¬ród³o: <a href='http://wynagrodzenia.pl/kalkulator_oblicz.php'>wynagrodzenia.pl</a>";
-$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "emerytalne", $komentarz, 0.14, -9.32);
-$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "rentowe", $komentarz, 0.09327, -6.16);
-$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "wypadkowe", $komentarz, 0.02397, -1.6);
-$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "fundusz pracy", $komentarz, 0.03516, -2.33);
-$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "FG¦P", $komentarz, 0.00144, -2.33);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("ZUS", "emerytalne", $komentarz, 0.14, -9.28);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("ZUS", "rentowe", $komentarz, 0.02153, -1.44);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("ZUS", "emerytalna", $komentarz, 0.14, -9.32);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("dochodowe", "PIT", $komentarz, 0.127, -75);
-
-$vat5 = new PodatekJakVat("VAT", "Vat 5%", "", 5);
-$vat8 = new PodatekJakVat("VAT", "Vat 8%", "", 8);
-$vat23 = new PodatekJakVat("VAT", "Vat 23%", "", 23);
-
-$kosztyPozwolen = new PodatekProcentowy("pozwolenia", "Koszty pozwoleñ i uzgodnieñ", "W koszcie wynajmu/kredytu s± sztuczne obci±¿enia przy budowie: Pozwolenie na budowe, na wycinki drzew. Projektant, architekt, kierownik budowy to zawody licencjonowane, wiêc narzucaj± wy¿sze ceny. Dodatkowo s± uzgodnienia z monopolistami: dostawcami wody, pr±du, gazu. (Trzeba do nich siê pod³±czyæ by uzyskaæ pozwolenie na budowê) Przy budowie domku jednorodzinnego te koszty to ponad 30 tys. z³, co najmniej po³owa bezsensowna, wiêc zak³adam narzut 5%", 5);
-$kosztyKredytow = new PodatekProcentowy("inflacja", "Koszty kredytu/inflacji", "Zak³adam wk³ad w³asny ok. 40%, koszty kredytu +100%, pomniejszam o inflacjê. W przypadku oszczêdzania na budowê nieco mniej straci siê przez inflacjê", 30);
-$kosztySztucznegoPosrednika = new PodatekProcentowy("monopol", "Koszty po¶rednika", "Rolnik nie mo¿e sobie legalnie sprzedaæ bezpo¶rednio do sklepu, tylko musi do po¶rednika (regulacje UE). No i np. cena skupu mleka to 1,1z³/l <a href=\"http://www.mleczarstwopolskie.pl/cgblog/1673/54/Ceny-skupu-mleka-w-czerwcu-2015-r\">z czerwca 2015</a>, a cena mleka ¶wie¿ego w sklepach to min 1,95 z³/l. Rolnik sprzedaj±c bezpo¶rednio do sklepu mia³by koszt maszyny pasteryzuj±cej/pakuj±cej 100 tys z³/3 lat/1000litrów/dzieñ = 10 gr/l + butelka 10 gr, Oczywi¶cie sklepy maja narzut ok. 20%, czyli cena w sklepie by³aby 1,55 z³/l. Po¶rednik pobiera wiêc min 20% ceny", 20);
-
-$lokalnyMonopol = new PodatekProcentowy("monopol", "Lokany monopol", "", 30);
-$oligopol = new PodatekProcentowy("monopol", "Oligopol", "", 20);
-$dopuszczenie = new PodatekProcentowy("pozwolenia", "Dopuszczenie do sprzeda¿y", "", 30);
-$akcyza = new PodatekProcentowy("Akcyzy", "Akcyza", "", 39.4);
-$oplataPaliwowa = new PodatekProcentowy("Akcyzy", "Op³ata paliwowa", "", 5.4778);
-
-
-$podatkiWZakupach[] = new PodatekProcentowy("dochodowe", "Podatek dochodowy sprzedawcy", "Pracodawcy p³ac± oko³o 19% ze swoich zysków podatku dochodowego. Gdyby tego podatku nie by³o, konkurencja na rynku wymusi³aby obni¿ke cen o ten podatek. Zak³adaj±c ¶redni zysk firm oko³o 5%, ceny spad³yby o oko³o 1%", 1);
-$podatkiWZakupach[] = new PodatekProcentowy("biurokracja", "Koszty biurokracji", "Wed³ug oszacowañ oko³o 2.15% wszyskich kosztów firm to sprawy zwi±zane z obs³ug± urzedników i urzêdów ", 2.15);
-
-
-$wydatki[] = $a = new GrupaWydatkow("Wynajem mieszkania/rata kredytu", $podatkiWZakupach, 700/2050);
-array_unshift($a->podatki, $vat8, $kosztyKredytow, $kosztyPozwolen);
-$wydatki[] = $a = new GrupaWydatkow("¯ywno¶æ", $podatkiWZakupach, 400/2050);
-array_unshift($a->podatki, $vat5, $kosztySztucznegoPosrednika);
-$wydatki[] = $a = new GrupaWydatkow("Woda", $podatkiWZakupach, 50/2050);
-array_unshift($a->podatki, $vat8, $lokalnyMonopol);
-$wydatki[] = $a = new GrupaWydatkow("Energia", $podatkiWZakupach, 250/2050);
-array_unshift($a->podatki, $vat23, $lokalnyMonopol);
-$wydatki[] = $a = new GrupaWydatkow("Wyposa¿enie mieszkania", $podatkiWZakupach, 50/2050);
-array_unshift($a->podatki, $vat23);
-$wydatki[] = $a = new GrupaWydatkow("Art. medyczne", $podatkiWZakupach, 100/2050);
-array_unshift($a->podatki, $vat8, $dopuszczenie);
-$wydatki[] = $a = new GrupaWydatkow("Benzyna", $podatkiWZakupach, 200/2050);
-array_unshift($a->podatki, $vat23, $akcyza, $oplataPaliwowa);
-$wydatki[] = $a = new GrupaWydatkow("Eksp. samochodu", $podatkiWZakupach, 50/2050);
-array_unshift($a->podatki, $vat23);
-$wydatki[] = $a = new GrupaWydatkow("Art. higieniczne", $podatkiWZakupach, 150/2050);
-array_unshift($a->podatki, $vat5, $kosztySztucznegoPosrednika);
-
-// Liczenie
-///////////////////////////////////////////////////////////
-
-$wyn = array();
-$podPrac = 0;
-foreach ($podatkiPrac as $p){
-	$a = $p->licz($netto);
-	$podPrac += $a;
-	$wyn[] = $a;
-}
-$podDoWyn = 0;
-foreach ($podatkiDoWyn as $p){
-	$a = $p->licz($netto);
-	$podDoWyn += $a;
-	$wyn[] = $a;
-}
-$brutto = $netto + $podDoWyn + $podPrac;
-
-
-$podatkiOdWyn[] = new PodatekKwotowy("biurokracja", "Mandaty i op³aty skarbowe", "Wed³ug Rocznika Statystycznego GUS w 2013 r  pobrano 19431 mln z tytu³u Op³aty, grzywny, odsetki i inne
-dochody niepodatkowe. T± kwotê dzielimy na 31 mln doros³ych ludzi (https://pl.wikipedia.org/wiki/Ludno¶æ_Polski)", 19431/31/12);
-
-// Liczenie wydatków
-$sumaNetto = 0;
-foreach ($wydatki as $wyd){
-	$wyd->kwota = $k = round($netto*$wyd->kwotaStosunek, -1);
-	foreach ($wyd->podatki as $podatek){
-		$w = $podatek->licz($k);
-		$k -= $w;
-		//echo "Podatek: ",  $podatek->nazwa, " zabiera: ", $w, " zostaje: ", $k;
-		// TODO: zapisac do grupy podatków
-	}
-	$wyd->kwotaNetto = $k;
-	$sumaNetto += $k;
-}	
-
-
+/////////////////////////////////////////////////////////////
+$k = new Kalkulator();
+$k->podatki = $k->defaultPodatki($k->wydatki);
+//$k->netto = 2052;
+$k->netto = 2700;
+$k->liczOdNetto();
 
 // Wyswietlanie
 ///////////////////////////////////////////////////////////
 
 echo "<table class='ramka'>";
-wiersz("P³aci pracodawca<br/><b>(prawdziwe brutto)</b>", $brutto);
-wiersz("Koszty pracodawcy ZUS " . rozwiniecie('pracod'), $podPrac); // "Koszty pracodawcy "
+wiersz("P³aci pracodawca<br/><b>(prawdziwe brutto)</b>", $k->pBrutto);
+wiersz("Koszty pracodawcy ZUS " . rozwiniecie('pracod'), $k->wyniki[0]->suma); // "Koszty pracodawcy "
 echo "<tbody class='rozwiniecie' id='pracod' visibility='hidden'>";
-foreach ($podatkiPrac as $p)
-	wiersz($p->nazwa, $p->licz($netto));
+foreach ($k->wyniki[0]->czastkowe as $nazwa => $wartosc)
+	wiersz($nazwa, $wartosc);
 echo "</tbody>";
-wiersz("Brutto", $netto + $podDoWyn);
-wiersz("Sk³adki na ZUS " . rozwiniecie('pracow'), $podDoWyn); //"Sk³adki po stronie pracownika "
+wiersz("Brutto", $k->brutto);
+wiersz("Sk³adki na ZUS " . rozwiniecie('pracow'), $k->wyniki[1]->suma); //"Sk³adki po stronie pracownika "
 echo "<tbody class='rozwiniecie' id='pracow' visibility='hidden'>";
-foreach ($podatkiDoWyn as $p)
-	wiersz($p->nazwa, $p->licz($netto));
+foreach ($k->wyniki[1]->czastkowe as $nazwa => $wartosc)
+	wiersz($nazwa, $wartosc);
 echo "</tbody>";
-wiersz("Netto", $netto);
-
-
-foreach ($podatkiOdWyn as $p) {
-	$a = $p->licz($netto);
-	wiersz($p->nazwa, $a);
-}
+wiersz("Netto", $k->netto);
+foreach ($k->wyniki[2]->czastkowe as $nazwa => $wartosc)
+	wiersz($nazwa, $wartosc);
 echo "<tbody class='naglowek'>";
 wiersz2p("Przyk³adowe wydatki:", "koszt", "w tym<br/>podatki");
 echo "</tbody>";
 
 
-foreach ($wydatki as $wyd){
+foreach ($k->wydatki as $wyd){
 	wiersz2($wyd->nazwa, $wyd->kwota, $wyd->kwota - $wyd->kwotaNetto);
-	//wiersz($wyd->nazwa, $wyd->kwotaNetto);
 }
-wiersz("<b>Prawdziwe netto</b>", $sumaNetto);
-wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $sumaNetto/$brutto)).'%', "");
+wiersz2("Oszczêdno¶ci", $k->oszczednosci, $k->oszczPod);
+wiersz2("Suma", $k->wydatkiSuma, $k->wydatkiPod);
+wiersz("<b>Prawdziwe netto</b>", $k->pNetto);
+wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $k->pNetto/$k->pBrutto)).'%', "");
 echo "</table>";
 
 // 286 roboczogodzin roczie na dope³nienie obowi±zków zwi±zanych z podatkami: https://www.facebook.com/czerwonatasma/photos/a.395300367316115.1073741828.370459393133546/435449533301198/?type=1&fref=nf
@@ -559,175 +168,4 @@ echo "</table>";
 // od 16 mln zatrudnionych nale¿y odjaæ (1,9 mln zatrudnionych w sektorze publicznym - 0,6 edukacja - 0,3 s³u¿ba zdrwia)
 // Wychodzi nam 15 mln zatrudnionych
 // 2,3 / 16 * 15% = 2,15%
-
-exit;
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//if (isset($_GET['netto'])) {
-	if ($zwrot == '') $zwrot = 0;
-	if ($pomoc == '') $pomoc = 0;
-	
-	$netto_r = $zwrot/12 + $netto + $pomoc + $prywatna + $nettod;
-	
-	$brutto = $netto*1.435 - 95;
-	$brutto += $nettod*1.19;
-	
-	
-	$noweKoszty = false;
-	wypisz("Twój przychód miesiêczny", $netto_r, "Do wynagrodzenia netto dodane s±: pomoc socialna, zwrot i ulgi w podatku");
-	wypisz("Twoje wynagrodzenie brutto", $brutto, "Wziête z kalkulatorów wynagrodzenia brutto-netto: <br/> netto z umów o pracê i umów zlecenie jest mno¿one razy 1.435 i odejmowane 95 z³.<br/> netto z umowy o dzie³o jest mno¿one razy 1.19");
-	
-	wypisz("<b>Za Nowej Prawicy</b>", "", "");
-	/*
-	$podatekNP = $wartosc*$pr_podatek_po;
-	$podatekNP2 = $nier*$podNier/12;
-	$podatekNP4 = $podatekNP*57964/120832;
-	$podatekNP3 = $podatekNP + $podatekNP2 + $podatekNP4;
-	
-	$podatekNP4 = round($podatekNP4, 0);
-	$podatekNP2 = round($podatekNP2, 0);
-	$podatekNP = round($podatekNP, 0);
-	$przychodNP = $wartosc-$podatekNP3;
-	$dofinansowaniaZUE = 82500000 * 4.1538 / 7 / 12 / $dzielnikLudzi;
-	$dofinansowaniaZUEef = $dofinansowaniaZUE * $sprawnosc *0.5;
-	$nettoNP = 	$przychodNP - $mojSocial - $dofinansowaniaZUEef;
-	*/
-	
-	
-	wypisz("Ceny bêd± ni¿sze: <b>To co dzi¶ kupujesz za</b>", $netto_r, "Poni¿ej analiza powodów najbardziej prawdopodobnego spadku cen");
-	$kwota = $netto_r;
-	$vat23 = 2000/3785 * 100;
-	$vat8 = 1785/3785 * 50;
-	$vat5 = 1785/3785 * 50;
-	obnizenie('jakVat',23, $vat23, $kwota, 'Vat 23%', 'Dotyczy tylko stawki Vat 23%. <BR/> T± stawk± VAT jest obci±zone '.round($vat23, 1).' % kupowanych przez nas produktów (¼ród³o <a href="http://www.ebroker.pl/wiedza/ile-vat-u-jest-w-kajzerce/3535">ebroker.pl</a>)', $netto_r);
-	obnizenie('jakVat', 8, $vat8, $kwota, 'Vat 8%', '(m.in. u¿ywana w budownictwie)<BR/> T± stawk± VAT jest obci±zone '.round($vat8, 1).' % kupowanych przez nas produktów (¼ród³o <a href="http://www.ebroker.pl/wiedza/ile-vat-u-jest-w-kajzerce/3535">ebroker.pl</a>)', $netto_r);
-	obnizenie('jakVat', 5, $vat5, $kwota, 'Vat 5%', '(g³ównie produkty spo¿ywcze)<BR/> T± stawk± VAT jest obci±zone '.round($vat5, 1).' % kupowanych przez nas produktów (¼ród³o <a href="http://www.ebroker.pl/wiedza/ile-vat-u-jest-w-kajzerce/3535">ebroker.pl</a>)', $netto_r);
-	$vatk = $netto_r - $kwota;
-	$vatCPr = ($netto_r/$kwota - 1)*100;
-	$p = 50; // Czê¶æ wp³ywu 
-	obnizenie('kwotowo', $vatk, $p/100, $kwota, 'Akcyzy', "Nie znam dok³adnych kwot i obci±¿eñ procentowych akcyz. ".
-	"Poniewa¿ wp³ywy z akcyz do bud¿etu wynosz± oko³o $p % wp³ywów z VATu, szacujê ¿e dla jednej osoby stosunek bêdzie uk³ada³ siê podobnie.", $netto_r);
-	$przedZerowym = $kwota;
-	//obnizenie('jakVat', 1, 100, &$kwota, 'Inflacja', "¦rednio inflacja to 2% w skali roku. \n", $netto_r);
-	obnizenie('jakVat', 19*0.05, 100, $kwota, 'Podatek dochodowy', "Podatek dochodowy dla firm zwiêksza te¿ ceny produktów. Szacujê, ¿e ¶rednio firmy osi±gaj± 5% zysku i z tego zysku odliczamy 19% podatku", $netto_r);
-	obnizenie('jakVat', 50, 25, $kwota, 'Licencje i monopole', "Bardzo du¿o produktów, które kupujemy jest ograniczonych licencjami, pozwoleniami na produkcjê, oraz pañstwowymi monopolami. <br\>
-	Demonstracjê wzrostu przez to cen widzieli¶my latem 2013r. przy tz. 'ustawie ¶mieciowej'. 
-	Wcze¶niej firmy wyworz±ce ¶mieci dogadywa³y siê bezpo¶redno z nami, wiêc dba³y o niskie ceny i zadowolenie klienta. 
-	Teraz dogaduj± siê raz z urzêdem i maj± monopol na obszarze miasta/gminy. O ile ceny wzros³y? W Katowicach o prawie 100%. <br/>
-	Jakie produkty s± ograniczone? <br/>
-	- Produkty spo¿ywcze (czyli 23% produktów jak z VATu), <br/> 
-	- Budowlane (trzeba mieæ pozwolenia na budowê), wiêc koszty mieszkañ i czynsze te¿<br/>
-	- Samochody (dopuszczenie do ruchu), <br/>
-	- Media (Pr±d - op³aty za przesy³ energii zmonopolizowane, Wêgiel - kopalnie pañstwowe, Ropa,Gaz - import wynegocjowany politycznie), <br/>
-	- itp. <br/> Szacujê, ¿e:
-	", $netto_r);
-	$pp = (1 - 2000/2369.60)*100;
-	$pC = round($pp);
-	$pracC = round(100-$kocztyNiepracownicze);
-	$uZoPc = round(100*$ulamekZatrudnionychUmowaOPrace);
-	obnizenie('procentowo', $pp*$ulamekZatrudnionychUmowaOPrace*(100-$kocztyNiepracownicze)/100, 100, $kwota, 'Koszty zatrudnienia pracownika', "Szacujê, ze oko³o $pracC % kosztów pracodawcy to koszty zwi±zane z wynagrodzeniami (Uwaga: warto¶æ wyssana z palca: potrzebujê ¼ród³a) Z tego $uZoPc % to umowy o pracê (¼ród³o: <a href='http://www.bankier.pl/wiadomosc/Umowy-smieciowe-to-mit-Pracuje-na-nich-tylko-600-tys-osob-2794604.html' >bankier.pl</a>).<br/>"
-	."Oko³o $pC % tego, co wydaja na umowy o pracê to s± ró¿ne sk³adki na ZUS po stronie pracodawcy (z <a href='http://prawo.rp.pl/temat/846545.html'>kalkulatorów wynagrodzenia dla pracowawcy np. prawo.rp.pl</a>)", $netto_r);
-	obnizenie('procentowo', $kocztyBiurokratyczne, 100, $kwota, 'Koszty ksiêgowe i biurokratyczne', "Po uproszczeniu przepisów podatkowych spadn± znacznie koszty firm. Wiêkszo¶æ Przedsiêbiorstw nie bêdzie musia³a ponosiæ kosztów ksiêgowych, nie bêdzie obci±¿ana obowi±zkami sprawozdawczymi itp. Szacujê ¿e koszty spadn± o $kocztyBiurokratyczne% (Uwaga: Warto¶æ t± wzi±³em z subiektywnych obserwacji - nie mam ¼ród³a)", $netto_r);
-	
-	
-	
-	// Sprzê¿enie zwrotne dodatnie
-	$skokSp = $przedZerowym/$kwota-1;
-	$skokSp *= 100;
-	$pozSp = $kocztyNiepracownicze;
-	for ($i = 1; $pozSp > 0.5; $i++){
-		
-		obnizenie('jakVat', $skokSp, $pozSp, $kwota, "Sprzê¿enie $i", "Przedsiêbiorstwa te¿ kupuj± produkty/podzespo³y o zawy¿onych cenach. Ceny dla przedsiêbiorstw zawy¿a : Inflacja, Podatek dochodowy, Licencje i monopole, Koszty zatrudnienia, Koszty ksiêgowe i biurokratyczne firm od których kupuj± produkty/us³ugi.", $netto_r);
-		$pozSp *= $kocztyNiepracownicze/100;
-	}
-	
-	$noweKoszty = true;
-	$przedVAT = $kwota;
-	obnizenie('procentowo', -15, 100, $kwota, 'VAT 15% na wszystko', "W Programie Nowej Prawicy planowana jest jedna stawka VAT równa minimalnemu podatkowi VAT w Unii Europejskiej.", $netto_r);
-	obnizenie('kwotowo',$przedVAT-$kwota , $p/100, $kwota, 'Akcyzy wymagane przez UE', "Unia Europejska przewiduje minimalne stawki akcyz na wiele produktów. Mimo, ¿e III RP pobiera zwykle wiêksze akcyzy ni¿ minimalne, to pesymistycznie zak³adam taki sam stosunek pobieranych podatków z VAT i akcyz jak dzisiaj.", $netto_r);
-	wypisz("<b>Dobra za ".round($netto_r)." z³ za Nowej Prawicy kupisz za</b>", $kwota, "To co dzisiaj kupujesz za ".round($netto_r, 0)." z³. po wprowadzeniu programu Nowej Prawicy kupisz za ".round($kwota. 0)." z³.");
-	$spadekCen = $kwota/$netto_r;
-	$spadekCenNapis = round($spadekCen*100, 0) .'%';
-	wypisz("¦rednie ceny w stosunku do dzisiejszych", $spadekCenNapis, "Czyli ceny spadn± drastycznie: Bu³ka kosztuj±ca dzi¶ 50gr bêdzie kosztowaæ znów oko³o ".round(50*$spadekCen, 0). "gr"); 
-	wypisz("Wynagrodzenie netto bêdzie równe temu brutto", $brutto, "Program Nowej Prawicy m.in."
-		." przewiduje likwidacjê podatku PIT i sk³adek na ZUS. To w efekcie daje, ¿e otrzymujesz na rêkê kwotê, któr± masz w umowie o pracê"."<br/><br/><font style='font-size:small'>Sk³adki ZUS, itp. po stronie pracodawcy te¿ zostan± zlikfidowane, lecz je uwzglêdni³em w obni¿onych kosztach pracodawcy i dodaj± swoj± cegie³kê przy obni¿ce cen. <br/> Moim zdaniem najbardziej prawdopodonym jest scenariusz, w którym podzia³ miêdzy pracodawc± a pracownikiem zysku ze zniesienia kosztów zatrudnienia odbêdzie siê w³a¶nie na kwocie brutto: takie rozwi±zanie nie wymaga renegocjacji umów.</font>"); 
-	$brutto += $prywatna;
-	$przedObn = $brutto;
-	wypisz("Twój miesiêczny przychód", $brutto, "Twój miesiêczny przychód to wynagrodzenie brutto, plus pomoc od prywatnych ludzi i instytucji.<br/>Poniewa¿ ogólnie ludzie bêd± mieæ wiêcej pieniêdzy, to pomoc od prywatnych ludzi i instytucji bêdzie co najmniej taka jak dzisiaj.");
-	wypisz("<b>Dodatkowe koszty miesiêcznie:</b>", "", "");
-	
-	obnizenie('kwotowo', $nier/1000, 1/12, $brutto, "Maksymalny podatek od nieruchomo¶ci", "Program Nowej Prawicy proponuje podatek równy maksymalnie 1 promilowi warto¶ci nieruchomo¶ci w skali roku. W³a¶ciciel sam okre¶la warto¶æ swojej nieruchomo¶ci, lecz mo¿e byæ ona wykupiona po cenie 2 razy wy¿szej ni¿ zadeklarowana. W tym przeliczeniu podatek dzielimy dodatkowo przez 12 miesiêcy", $przedObn);
-	
-	$leczenie = ($wynagrodzenieSpec+$wynajemSali)/16/20;
-	$leczenieC = $leczenie*$osoby*2;
-	obnizenie('kwotowo',$leczenieC , $spadekCen, $brutto, "Prywatny lekarz", "Z wynagrodzenia trzeba bêdzie op³aciæ wizyty u lekarza. Pesymistycznie za³ó¿my, ¿e bêd± one 2 razy w miesi±cu na osobê. Ile bêdzie kosztowa³a wizyta u lekarza? A ile by kosztowa³a dzisiaj, gdyby nie NFZ? Koszty prywatnego lekarza, przyjmuj±cego u siebie w domu: swoje wynagrodzenie: np. $wynagrodzenieSpec  z³ + remonty gabinetu i media np.: $remontySali z³/mies. Mo¿e przyj±æ spokojnie 16 pacjentów dziennie, czyli 320 miesiêcznie. Wiêc jedna wizyta dzi¶ mog³aby kosztowaæ ".round($leczenie, 1). " z³.<br/><br/>Koszt jednej wizyty mno¿ymy razy ilo¶æ osób ($osoby) i 2 wizyty w mies±cu (Wychodzi ".round($leczenieC, 0)." z³). Ca³o¶æ mno¿ymy razy ¶redni poziom cen $spadekCenNapis." , $przedObn);
-	
-	$szpital = $kosztWizytyWszpitalu/$czestotliwosc + $kosztWizytyWszpitalu2/$czestotliwosc2;
-	$szpitalC = $szpital*$osoby;
-	obnizenie('kwotowo',$szpitalC , $spadekCen, $brutto, "Prywatne szpitale", "Z wynagrodzenia trzeba bêdzie te¿ op³aciæ wizyty w szpitalu. S± one zwykle rzadko: raz na kilka lat (np. co 3 lata), ale te¿ wi±¿± siê z du¿ym wydatkiem (za³u¿my, ¿e ¶rednio $kosztWizytyWszpitalu z³), dodatkowo raz w ¿yciu doliczam naprawdê ciê¿k± chorobê: np. rak $kosztWizytyWszpitalu2 z³ (wg. <a href = 'http://www.rynekzdrowia.pl/Finanse-i-zarzadzanie/Ile-kosztuje-leczenie-raka-piersi-w-Polsce,119986,1.html'>rynekzdrowia.pl</a>) . Wed³ug tych szacunków koszt miesiêczny w szpitalach na 1 cz³owieka to ".round($szpital, 0)." z³ Koszt miesiêczny mno¿ymy razy ilo¶æ osób ($osoby). Wychodzi ".round($szpitalC, 0)." z³. (Ta kwota jest podobna do kosztów prywatnego ubezpieczenia zdrowotnego)<br/> Ca³o¶æ mno¿ymy razy ¶redni poziom cen $spadekCenNapis.",$przedObn);
-	
-	$kosztSzkoly = $wynagrodzenieSpec/$nauczycielNaIleUczniów + $wynagrodzeniePomoc/$pomocNaIleUczniów+690/2; 
-	$kosztSzkolyC = $kosztSzkoly*$dzieci*$zysk;
-	if ($dzieci > 0) {
-		obnizenie('kwotowo',$kosztSzkolyC , $spadekCen, $brutto, "Prywatna szko³a","Ile kosztuje prywatna szko³a? Wed³ug artyku³u na <a href = 'http://wyborcza.biz/biznes/1,101562,12497582,Ile_to_kosztuje_i_dlaczego_tak_drogo__Czesne_w_szkole.html'>http://wyborcza.biz</a> koszty wynajmu sali i inwestycji i remontów wynosz± na jednego ucznia 50% ze ¶redniej kwoty 690z³. Co z pensjami? Jeden nauczyciel mo¿e przypadaæ na oko³o $nauczycielNaIleUczniów uczniów (Zwykle w klasie jest powy¿ej 25 uczniów, ale nauczyciele maj± okienka i przygowowuj± sie do lekcji), ponadto jeszcze kto¶ do sprz±tania  (Dzisiaj dyrektor, wicedyrektor, sekretarka zajmuj± siê prawie wy³±cznie kontaktami z urzêdnikami, a nauczyciele 1/3 czasu zu¿ywaj± na wype³nianie \"papierków\") Podsumowuj±c 50% z 690 + 1 etat nauczycielski $wynagrodzenieSpecna na $nauczycielNaIleUczniów uczniów + 1 etat pomocniczy na $pomocNaIleUczniów uczniów daje to ".round($kosztSzkoly, 0)." z³ na jednego ucznia. Oczywi¶ciwe 'wstrêtny kapitalista' we¼mie zysk (np. 10%) to daje w sumie ".round($kosztSzkolyC, 0)." z³ na $dzieci dzieci<br/> Ca³o¶æ mno¿ymy razy ¶redni poziom cen $spadekCenNapis.",$przedObn);
-		obnizenie('kwotowo', 390, -$dzieci, $brutto, "Bon edukacyjny", "W programie Kongresu Nowej Prawicy znajduje siê bon edukacyjny. Nie s± sprecyzowane szczegó³y, ale mogê siê domy¶laæ, ¿e najpro¶ciej to zrobiæ jako przelew pieniêdzy na konto rodziców w zamian za zobowi±zanie siê wyedukowania dziecka do poziomu gwarantowanego przez konstucjê. Jak sprawdzaæ, czy rodzice siê wywi±zali? Pozwy s±dowe doros³ych dzieci na z³ych rodziców? Zachowaæ egzaminy gimnazjalne? \nInne rozwi±zania bonu edukacyjnego - np. karty, gdzie kwota idze bezpo¶rednio do szko³y, pozostawiaj± problemy w postaci: co to jest szko³a? Kto bêdzie te szko³y kontrolowaæ, czy faktycznie ucz±, czy tylko ¶ci±gaj± kasê?. My¶lê, ¿e kontrolê zostawiæ rodzicom. A kontrol±, czy rodzice wywi±zuj± siê z obowi±zku edukacji dzieci, mo¿e byæ gro¼ba kary, gdy przed s±dem kto¶ udowodni, ¿e nie uczyli oni swych dzieci.\n\n Jaka bêdzie wysoko¶æ bonu edukacyjnego? My¶lê, ¿e równa cenom najtañszych szkó³. Tutaj za³o¿y³em, ¿e bêdzie równa kosztom tych zwyk³ych najtañszych szkó³ (np. 390 z³/mies.)\n\n\n",$przedObn);
-	}
-	wypisz('<b>Podsumowanie</b>', "", "");
-	$zysk = $brutto - $kwota;
-	$zyskR = round($zysk);
-	wypisz('<b>Twój miesiêczny zysk</b>', "<b>$zyskR z³</b>", "Za Nowej Prawicy zostanie Ci miesiêcznie $zyskR z³ po odliczeniu kosztów tego co dzi¶ kupujesz za swoje wynagrodzenie. Z kwoty ".round($brutto)." z³ na '¿ycie' odliczam kwotê miesiêcznych wydatków (".round($netto_r)." z³) obnizon± o ¶rednie zawy¿enie dzisiejszych cen $spadekCenNapis, czyli ".round($kwota)." z³. ");
-	$zyskNaCeny = $zysk / $spadekCen;
-	$zyskNaCenyR = round($zyskNaCeny);
-	wypisz("<b><font style='font-size:18'>Twój miesiêczny zysk na dzisiejsze ceny</font></b>", "<b><font style='font-size:20'>$zyskNaCenyR z³</font></b>", 
-	"Kwota $zyskR z³ bêdzie warta wiêcej, ni¿ dzisiaj, gdy¿ ¶redno ceny bêd± mia³y warto¶æ $spadekCenNapis dzisiejszych. <br/> Aby uzyskaæ prawdziw± warto¶æ tych pieniêdzy dzielê je przez $spadekCenNapis. <br/><br/><b>Za $zyskR z³ bêdzie mo¿na kupiæ tyle dóbr, ile dzi¶ za $zyskNaCenyR z³.</b>");
-	
-	echo "<H3 style='text-align:center;background-color:yellow'> Wersja testowa. Proszê o komentarze: piotr.jerzykowski@gmail.com </H3>";
-	echo "<H1 style='text-align:center'> Kalkulator wynagrodzeñ po obni¿ce podatków  </H1>";
-	echo "<table>";
-	echo "<tr><td width='50%' rowspan='1'>";
-	$n = $netto + $nettod;
-	echo "<font style='font-size:24'>Je¶li zarabiasz netto $n z³</font><font style='font-size:24'> i masz rodzinê $dorosli+$dzieci </font><br/><font style='font-size:30'>to oferujê Ci ";
-	if ($zyskNaCenyR >= 0) echo " podwy¿kê <b>+$zyskNaCenyR z³</b></font>";
-	else echo " obni¿kê <b>$zyskNaCenyR z³</b></font>";
-	
-	echo "<br/><font style='font-size:20'> z samej tylko obni¿ki podatków i deregulacji zawodów, czyli: jedna stawka VAT 15%, usuniêcie PIT i CIT wg. <a href='http://www.nowaprawicajkm.pl/info/program-wyborczy/program-kongresu-nowej-prawicy/item/program-kongresu-nowej-prawicy'>programu gospodarczego Kongresu Nowej Prawicy</a></font>";
-	
-	$os = round($n / ($dorosli+$dzieci));
-	if ($os < 350)
-		echo "<div style='color:red'>Jak Ci siê udaje wy¿yæ za $os z³/osobê?</div>";
-		
-	
-	//echo "<br/><font style='font-size:20'> z samej tylko obni¿ki podatków i deregulacji zawodów, czyli po wprowadzeniu <a href='http://www.nowaprawicajkm.pl/info/program-wyborczy/program-kongresu-nowej-prawicy/item/program-kongresu-nowej-prawicy'>programu gospodarczego Kongresu Nowej Prawicy</a></font>"; 
-	
-	echo "<br/>(Powyzsza kwota zosta³a przeliczona na dzisiejsz± warto¶æ z³otówki. Wyja¶nienie poni¿ej)";
-	
-	echo "</td><td rowspan='2' style='vertical-align:top;'>";
-	wypiszInputy();
-	echo "</td></tr>"; //<tr></tr>
-	echo "<tr><td rowspan='5'>";
-	//echo "Uzasadnienie:<table style='border-style:outset'><tr style='border-bottom-style:solid;'><th colspan='2'>TERAZ</th></tr>"; //
-	//echo $doWypisania;
-	//echo "</table>";
-	echo "</td></tr><tr><td width='50%' style='padding-bottom:200;padding-top:100'><div id='komentarz'></div></td></tr>";
-	//style='vertical-align:middle;' style='vertical-align:middle;margin:100,0'
-	
-	echo "</table>";
-	echo "<br/>Dotyczy osób rzetelnie wykonuj±cych potrzebn± pracê. 
-		(Osoby zatrudnione dla celów biurokracji mog± dostaæ takie wynagrodzenie po przekwalifikowaniu siê)<br/>
-		Obliczenia s± szacunkowe i nikt nie wie dok³adnie o ile przedsiêbiorcy obni¿± cenê, a o ile podwy¿sz± wynagrodzenia. 
-		(Mo¿e siê zdarzyæ ¿e zamiast wyp³aty " . round($przedObn) . " z³ zobaczysz j± np. dwa razy wy¿sz± lub ni¿sz±, lecz ceny te¿ zmieni± siê proporcjonalnie)";
-	echo "<br/><b>Kalkulator prezentuje wyniki moich przeliczeñ i oszacowañ. Nie zosta³ jeszcze sprawdzony przez KNP</b>";
-	echo "<br/></br/><b>Bardzo proszê o komentarze: piotr.jerzykowski@gmail.com</b>";
-	echo "<h3> Uwaga ! </h3> Potrzebujê ¼róde³ i dok³adniejszych warto¶ci poni¿szych parametrów:<br/><lu>";
-	echo "<li><b>¦redni procent kosztów zatrudnienia pracowników w stosunku do wszystkich kosztów firmy (Za³o¿y³em, ¿e 60%)</b></li>";
-	echo "<li><b>¦redni procent kosztów na biurokracjê (ksiêgowe, kontakty z ksiêgowo¶ci±, papiery do urzedów itp. - Za³o¿y³em, ¿e jest to 5%)</b></li>";
-	echo "<li><b>Oszacowanie, ile ¶rednio kupujemy produktów ograniczonych licencjami, pozwoleniami, sztucznymi monpolami (oligopolami) (Za³o¿y³em, ¿e po³owê miesiêcznych wydatków wydajemy na takie produkty, których ceny s± przez to zawy¿one ¶rednio o 50%)</b></li>";
-	echo "<li>Koszty leczenia w prywatnych szpitalach (Za³o¿y³em, ¿e jest 1000z³ co 3 lata + 35 tys.z³ raz na 50 lat)</li>";
-	echo "<li>Ile przypada³oby uczniów na 1 nauczyciela (Gdyby nauczyciel nie marnotrawi³ 1/3 czasu na papierkologiê - za³o¿y³em, ¿e 15)</li>";
-	
-	echo "Pozosta³e parametry:<br/>";
-	echo "<li>Zatrudnienie specialisty 5000 z³/mies</li>";
-	echo "<li>Zatrudnienie sekretarki/wo¼nego 2500 z³/mies</li>";
-	echo "</lu> Jak widzicie potrzebujê równie¿ grafika :)";
-	
-//} //*/	
 ?>
