@@ -372,8 +372,8 @@ class PodatekProcentowy  extends Podatek{
 
 class PodatekLiniowyZKwota extends Podatek{
 	public $b;
-	public function __construct($nazwa , $komentarz, $param, $b){
-		parent::__construct ($nazwa , $komentarz, $param);
+	public function __construct($grupa, $nazwa , $komentarz, $param, $b){
+		parent::__construct ($grupa, $nazwa , $komentarz, $param);
 		$this->b = $b; 
 	}
 	public function licz($kwota) {
@@ -429,35 +429,33 @@ $podatkiWZakupach = array();
 $wydatki = array();
 
 $komentarz = "¬ród³o: <a href='http://wynagrodzenia.pl/kalkulator_oblicz.php'>wynagrodzenia.pl</a>";
-$podatkiPrac[] = new PodatekLiniowyZKwota("emerytalne", $komentarz, 0.14, -9.32);
-$podatkiPrac[] = new PodatekLiniowyZKwota("rentowe", $komentarz, 0.09327, -6.16);
-$podatkiPrac[] = new PodatekLiniowyZKwota("wypadkowe", $komentarz, 0.02397, -1.6);
-$podatkiPrac[] = new PodatekLiniowyZKwota("fundusz pracy", $komentarz, 0.03516, -2.33);
-$podatkiPrac[] = new PodatekLiniowyZKwota("FG¦P", $komentarz, 0.00144, -2.33);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("emerytalne", $komentarz, 0.14, -9.28);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("rentowe", $komentarz, 0.02153, -1.44);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("emerytalna", $komentarz, 0.14, -9.32);
-$podatkiDoWyn[] = new PodatekLiniowyZKwota("PIT", $komentarz, 0.127, -75);
+$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "emerytalne", $komentarz, 0.14, -9.32);
+$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "rentowe", $komentarz, 0.09327, -6.16);
+$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "wypadkowe", $komentarz, 0.02397, -1.6);
+$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "fundusz pracy", $komentarz, 0.03516, -2.33);
+$podatkiPrac[] = new PodatekLiniowyZKwota("ZUS", "FG¦P", $komentarz, 0.00144, -2.33);
+$podatkiDoWyn[] = new PodatekLiniowyZKwota("ZUS", "emerytalne", $komentarz, 0.14, -9.28);
+$podatkiDoWyn[] = new PodatekLiniowyZKwota("ZUS", "rentowe", $komentarz, 0.02153, -1.44);
+$podatkiDoWyn[] = new PodatekLiniowyZKwota("ZUS", "emerytalna", $komentarz, 0.14, -9.32);
+$podatkiDoWyn[] = new PodatekLiniowyZKwota("dochodowe", "PIT", $komentarz, 0.127, -75);
 
-$vat5 = new PodatekJakVat("Vat 5%", "", 5);
-$vat8 = new PodatekJakVat("Vat 8%", "", 8);
-$vat23 = new PodatekJakVat("Vat 23%", "", 23);
+$vat5 = new PodatekJakVat("VAT", "Vat 5%", "", 5);
+$vat8 = new PodatekJakVat("VAT", "Vat 8%", "", 8);
+$vat23 = new PodatekJakVat("VAT", "Vat 23%", "", 23);
 
-$kosztyPozwolen = new PodatekProcentowy("Koszty pozwoleñ i uzgodnieñ", "W koszcie wynajmu/kredytu s± sztuczne obci±¿enia przy budowie: Pozwolenie na budowe, na wycinki drzew. Projektant, architekt, kierownik budowy to zawody licencjonowane, wiêc narzucaj± wy¿sze ceny. Dodatkowo s± uzgodnienia z monopolistami: dostawcami wody, pr±du, gazu. (Trzeba do nich siê pod³±czyæ by uzyskaæ pozwolenie na budowê) Przy budowie domku jednorodzinnego te koszty to ponad 30 tys. z³, co najmniej po³owa bezsensowna, wiêc zak³adam narzut 5%", 5);
-$kosztyKredytow = new PodatekProcentowy("Koszty kredytu/inflacji", "Zak³adam wk³ad w³asny ok. 40%, koszty kredytu +100%, pomniejszam o inflacjê. W przypadku oszczêdzania na budowê nieco mniej straci siê przez inflacjê", 30);
-$kosztySztucznegoPosrednika = new PodatekProcentowy("Koszty po¶rednika", "Rolnik nie mo¿e sobie legalnie sprzedaæ bezpo¶rednio do sklepu, tylko musi do po¶rednika (regulacje UE). No i np. cena skupu mleka to 1,1z³/l <a href=\"http://www.mleczarstwopolskie.pl/cgblog/1673/54/Ceny-skupu-mleka-w-czerwcu-2015-r\">z czerwca 2015</a>, a cena mleka ¶wie¿ego w sklepach to min 1,95 z³/l. Rolnik sprzedaj±c bezpo¶rednio do sklepu mia³by koszt maszyny pasteryzuj±cej/pakuj±cej 100 tys z³/3 lat/1000litrów/dzieñ = 10 gr/l + butelka 10 gr, Oczywi¶cie sklepy maja narzut ok. 20%, czyli cena w sklepie by³aby 1,55 z³/l. Po¶rednik pobiera wiêc min 20% ceny", 20);
+$kosztyPozwolen = new PodatekProcentowy("pozwolenia", "Koszty pozwoleñ i uzgodnieñ", "W koszcie wynajmu/kredytu s± sztuczne obci±¿enia przy budowie: Pozwolenie na budowe, na wycinki drzew. Projektant, architekt, kierownik budowy to zawody licencjonowane, wiêc narzucaj± wy¿sze ceny. Dodatkowo s± uzgodnienia z monopolistami: dostawcami wody, pr±du, gazu. (Trzeba do nich siê pod³±czyæ by uzyskaæ pozwolenie na budowê) Przy budowie domku jednorodzinnego te koszty to ponad 30 tys. z³, co najmniej po³owa bezsensowna, wiêc zak³adam narzut 5%", 5);
+$kosztyKredytow = new PodatekProcentowy("inflacja", "Koszty kredytu/inflacji", "Zak³adam wk³ad w³asny ok. 40%, koszty kredytu +100%, pomniejszam o inflacjê. W przypadku oszczêdzania na budowê nieco mniej straci siê przez inflacjê", 30);
+$kosztySztucznegoPosrednika = new PodatekProcentowy("monopol", "Koszty po¶rednika", "Rolnik nie mo¿e sobie legalnie sprzedaæ bezpo¶rednio do sklepu, tylko musi do po¶rednika (regulacje UE). No i np. cena skupu mleka to 1,1z³/l <a href=\"http://www.mleczarstwopolskie.pl/cgblog/1673/54/Ceny-skupu-mleka-w-czerwcu-2015-r\">z czerwca 2015</a>, a cena mleka ¶wie¿ego w sklepach to min 1,95 z³/l. Rolnik sprzedaj±c bezpo¶rednio do sklepu mia³by koszt maszyny pasteryzuj±cej/pakuj±cej 100 tys z³/3 lat/1000litrów/dzieñ = 10 gr/l + butelka 10 gr, Oczywi¶cie sklepy maja narzut ok. 20%, czyli cena w sklepie by³aby 1,55 z³/l. Po¶rednik pobiera wiêc min 20% ceny", 20);
 
-$lokalnyMonopol = new PodatekProcentowy("Lokany monopol", "", 30);
-$oligopol = new PodatekProcentowy("Oligopol", "", 20);
-$dopuszczenie = new PodatekProcentowy("Dopuszczenie do sprzeda¿y", "", 30);
-$akcyza = new PodatekProcentowy("Akcyza", "", 39.4);
-$oplataPaliwowa = new PodatekProcentowy("Op³ata paliwowa", "", 5.4778);
-
-
-$podatkiWZakupach[] = new PodatekProcentowy("Podatek dochodowy sprzedawcy", "Pracodawcy p³ac± oko³o 19% ze swoich zysków podatku dochodowego. Gdyby tego podatku nie by³o, konkurencja na rynku wymusi³aby obni¿ke cen o ten podatek. Zak³adaj±c ¶redni zysk firm oko³o 5%, ceny spad³yby o oko³o 1%", 1);
-$podatkiWZakupach[] = new PodatekProcentowy("Koszty biurokracji", "Wed³ug oszacowañ oko³o 5% wszyskich kosztów firm to sprawy zwi±zane z obs³ug± urzedników i urzêdów ", 5);
+$lokalnyMonopol = new PodatekProcentowy("monopol", "Lokany monopol", "", 30);
+$oligopol = new PodatekProcentowy("monopol", "Oligopol", "", 20);
+$dopuszczenie = new PodatekProcentowy("pozwolenia", "Dopuszczenie do sprzeda¿y", "", 30);
+$akcyza = new PodatekProcentowy("Akcyzy", "Akcyza", "", 39.4);
+$oplataPaliwowa = new PodatekProcentowy("Akcyzy", "Op³ata paliwowa", "", 5.4778);
 
 
+$podatkiWZakupach[] = new PodatekProcentowy("dochodowe", "Podatek dochodowy sprzedawcy", "Pracodawcy p³ac± oko³o 19% ze swoich zysków podatku dochodowego. Gdyby tego podatku nie by³o, konkurencja na rynku wymusi³aby obni¿ke cen o ten podatek. Zak³adaj±c ¶redni zysk firm oko³o 5%, ceny spad³yby o oko³o 1%", 1);
+$podatkiWZakupach[] = new PodatekProcentowy("biurokracja", "Koszty biurokracji", "Wed³ug oszacowañ oko³o 2.15% wszyskich kosztów firm to sprawy zwi±zane z obs³ug± urzedników i urzêdów ", 2.15);
 
 
 $wydatki[] = $a = new GrupaWydatkow("Wynajem mieszkania/rata kredytu", $podatkiWZakupach, 700/2050);
@@ -498,7 +496,7 @@ foreach ($podatkiDoWyn as $p){
 $brutto = $netto + $podDoWyn + $podPrac;
 
 
-$podatkiOdWyn[] = new PodatekKwotowy("Mandaty i op³aty skarbowe", "Wed³ug Rocznika Statystycznego GUS w 2013 r  pobrano 19431 mln z tytu³u Op³aty, grzywny, odsetki i inne
+$podatkiOdWyn[] = new PodatekKwotowy("biurokracja", "Mandaty i op³aty skarbowe", "Wed³ug Rocznika Statystycznego GUS w 2013 r  pobrano 19431 mln z tytu³u Op³aty, grzywny, odsetki i inne
 dochody niepodatkowe. T± kwotê dzielimy na 31 mln doros³ych ludzi (https://pl.wikipedia.org/wiki/Ludno¶æ_Polski)", 19431/31/12);
 
 // Liczenie wydatków
