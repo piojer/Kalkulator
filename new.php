@@ -177,13 +177,13 @@ function wiersz2p($tekst, $tekst1, $tekst2){
 	echo "<tr><td>$tekst</td><td>$tekst1</td><td class='dodatek'><div class='dodatek'>$tekst2</div></td></tr>";
 }
 
-function wiersza($tekst, $a, $pole, $komentarz = '', $post = ' z³', $dod = ''){
+function wiersza($tekst, $a, $pole, $komentarz = '', $post = ' z³', $dod = '', $prefix = ''){
 	echo "<tr><td>$tekst</td>";
 	foreach ($a as $k){
 		if ($komentarz != "")
-			$v = komentarz(myround($k->$pole).$post, $komentarz);
+			$v = komentarz($prefix.myround($k->$pole).$post, $komentarz);
 		else
-			$v = myround($k->$pole).$post;
+			$v = $prefix.myround($k->$pole).$post;
 		echo "<td colspan = \"2\">$v $dod</td>";
 		$dod = '';
 	}
@@ -245,8 +245,8 @@ function wiersz2wydatki($nazwa, $a, $key){
 		$pod = myround($wyd->kwota - $wyd->kwotaNetto) . ' z³';
 		$kom = "<h2>$nazwa</h2>";
 		$kom .= "<table><tr><td>brutto:</td><td>$kw z³</td></td></tr>";
-		foreach($wyd->wyniki->czastkowe as $nazwa => $v){
-			$kom .= "<tr><td>$nazwa</td><td>".myround($v)." z³</td></td></tr>";
+		foreach($wyd->wyniki->czastkowe as $n => $v){
+			$kom .= "<tr><td>$n</td><td>".myround($v)." z³</td></td></tr>";
 		}
 		$kom .= "<tr><td>Prawdziwa warto¶æ</td><td>".myround($wyd->kwotaNetto)." z³</td></td></tr>";
 		$kom .= "</table>";
@@ -369,7 +369,7 @@ function wyswietlKilka(array $a) {
 	}
 	echo "</tr>";
 	wiersza("Miesiêczny zysk", $a, 'zysk');
-	wiersza("Za swoje wynagrodzenie kupisz", $a, 'ilePWiecej', '', '% <br/> wiêcej');
+	wiersza("Za swoje wynagrodzenie kupisz", $a, 'ilePWiecej', '', '% wiêcej', '', 'o ');
 	echo "</table></form>";
 	echo "<div class='komentarz' id='komentarz'></div>";
 	
