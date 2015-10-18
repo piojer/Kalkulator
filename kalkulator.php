@@ -223,6 +223,7 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		$podatki = $this->emptyPodatki();
 		
 		$vat = new PodatekJakVat("VAT", "Vat 15%", "", 15);
+		$akcyza = new PodatekProcentowy("Akcyzy", "Akcyza", "", 39.4);
 		$podatkiWZakupach = array($vat);
 		$podatki['odWyn'][] = new PodatekKwotowy("ubezpieczenia", "Prywatne ubezpieczenie medyczne", "",  350);
 		//$wydatki["leczenie"] = new GrupaWydatkow("Ubezpieczenie medyczne", 0);
@@ -230,6 +231,7 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		foreach ($wydatki as $k => $g){
 			$wydatki[$k]->podatki = $podatkiWZakupach;
 		}
+		array_unshift($wydatki['benzyna']->podatki, $akcyza);
 		return $podatki;
 	}
 	

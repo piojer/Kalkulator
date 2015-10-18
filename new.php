@@ -39,7 +39,8 @@
 	.dodatek {color:rgb(150,90,100); font-size:small;}
 	tbody.naglowek {font-size:small;}
 	tbody.naglowek td {font-size:small;padding-left:15}
-	img {width:200;height:180;}
+	img {width:150;height:125;}
+	input {width:120}
 </style>
 </head><body>
 <?php
@@ -110,7 +111,10 @@ function wiersz($tekst, $kwota){
 	//echo "wiersz($tekst, $kwota)\n";
 	echo "<tr><td>$tekst</td><td colspan = \"2\">".myround($kwota)." z³</td></tr>";
 }
-
+function wierszp($tekst, $tekst1){
+	//echo "wiersz2p($tekst, $tekst1, $tekst2)";
+	echo "<tr><td>$tekst</td><td colspan = \"2\">$tekst1</td></tr>";
+}
 function wiersz2($tekst, $kwota, $kwota2){
 	//echo "wiersz2($tekst, $kwota, $kwota2\n";
 	echo "<tr><td>$tekst</td><td>".myround($kwota)." z³</td><td class='dodatek'><div class='dodatek'>".myround($kwota2)." z³</div></td></tr>";
@@ -120,10 +124,11 @@ function wiersz2p($tekst, $tekst1, $tekst2){
 	echo "<tr><td>$tekst</td><td>$tekst1</td><td class='dodatek'><div class='dodatek'>$tekst2</div></td></tr>";
 }
 
-function wiersza($tekst, $a, $pole, $post = ' z³'){
+function wiersza($tekst, $a, $pole, $post = ' z³', $dod = ''){
 	echo "<tr><td>$tekst</td>";
 	foreach ($a as $k){
-		echo "<td colspan = \"2\">".myround($k->$pole)."$post</td>";
+		echo "<td colspan = \"2\">".myround($k->$pole)."$post $dod</td>";
+		$dod = '';
 	}
 	echo "</tr>";
 }
@@ -134,6 +139,8 @@ function wiersz2a($tekst, $a, $pole, $pole2){
 	}
 	echo "</tr>";
 }
+
+
 function wierszWyniki($tekst, $id, $a, $idx){
 	if ($tekst != ""){
 		$vis = "visibility='hidden'";
@@ -188,6 +195,10 @@ function wierszLinia(){
 	echo "<tr><td colspan = \"100\"><hr/></td></tr>";
 }
 
+function wierszPrzerwa(){
+	echo "<tr><td colspan ='100'><div style='height:30px'</td></tr>";
+}
+
 //Inicjowanie 
 /////////////////////////////////////////////////////////////
 $k = new Kalkulator();
@@ -196,7 +207,8 @@ $k->podatki = $k->defaultPodatki($k->wydatki);
 //$k->netto = 2052;
 //$k->netto = 1286.17; // Minimalna krajowa
 $k->netto = 1600;
-
+if (isset($_GET['netto']))
+	$k->netto = $_GET['netto'];
 
 $k->liczOdNetto();
 $k2 = $k->copy();
@@ -241,7 +253,7 @@ function wyswietl1($k) {
 }
 
 function wyswietlKilka(array $a) {
-	echo "<table class='ramka'>";
+	echo "<form method='GET'><table class='ramka'>";
 	//Wyswietlanie loga
 	echo "<tr><td></td>";
 	foreach ($a as $k){
@@ -253,8 +265,13 @@ function wyswietlKilka(array $a) {
 	wierszWyniki("Koszty pracodawcy ZUS ", 'pracod', $a, 0);
 	wiersza("Brutto", $a, 'brutto');
 	wierszWyniki("Sk³adki na ZUS ", 'pracow', $a, 1);
-	wiersza("Netto", $a, 'netto');
+	wiersza("Netto", $a, 'netto', 'z³ ', rozwiniecie('netto'));
+	echo "<tbody class='rozwiniecie' id='netto'>";
+	wierszp("umowa o pracê", "<input type='text' name='netto' value='{$a[0]->netto}'/> z³");
+	wierszp("", "<input type='submit'  value='zmieñ'/>");
+	echo "</tbody>";
 	wierszWyniki("","dodatkowe", $a, 2);
+	wierszPrzerwa();
 	//echo "<tbody class='naglowek'>";
 	wiersz2pA("Przyk³adowe wydatki:", "koszt", "w tym<br/>podatki", count($a));
 	//echo "</tbody>";
@@ -266,12 +283,13 @@ function wyswietlKilka(array $a) {
 	
 	wiersz2a("Oszczêdno¶ci", $a, 'oszczednosci', 'oszczPod');
 	wierszLinia();
-	wiersz2a("Suma", $a, 'wydatkiSuma', 'wydatkiPod');
+	wiersz2a("RAZEM:", $a, 'wydatkiSuma', 'wydatkiPod');
+	wierszPrzerwa();
 	wiersza("<b>Prawdziwe netto</b>", $a, 'pNetto');
 	wiersza("Suma podatków, op³at, itp.", $a, 'procentPodatkow', '%');
 	//wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $k->pNetto/$k->pBrutto)).'%', "");
 	
-	echo "</table>";
+	echo "</table></form>";
 
 }
 wyswietlKilka(array($k, $k2));
