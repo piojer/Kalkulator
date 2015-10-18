@@ -166,11 +166,12 @@ class Kalkulator{
 		$podatki['prac'][] = new PodatekLiniowyZKwota("ZUS", "rentowe", $komentarz, 0.09327, -6.16);
 		$podatki['prac'][] = new PodatekLiniowyZKwota("ZUS", "wypadkowe", $komentarz, 0.02397, -1.6);
 		$podatki['prac'][] = new PodatekLiniowyZKwota("ZUS", "fundusz pracy", $komentarz, 0.03516, -2.33);
-		$podatki['prac'][] = new PodatekLiniowyZKwota("ZUS", "FG¦šP", $komentarz, 0.00144, -2.33);
+		$podatki['prac'][] = new PodatekLiniowyZKwota("ZUS", "FG¦šP", $komentarz, 0.00144, -0.11);
 		
 		$podatki['doWyn'][] = new PodatekLiniowyZKwota("ZUS", "emerytalne", $komentarz, 0.14, -9.28);
 		$podatki['doWyn'][] = new PodatekLiniowyZKwota("ZUS", "rentowe", $komentarz, 0.02153, -1.44);
-		$podatki['doWyn'][] = new PodatekLiniowyZKwota("ZUS", "zdrowotne", $komentarz, 0.14, -9.32);
+		$podatki['doWyn'][] = new PodatekLiniowyZKwota("ZUS", "chorobowe", $komentarz, 0.03516, -2.33);
+		$podatki['doWyn'][] = new PodatekLiniowyZKwota("ZUS", "zdrowotne", $komentarz, 0.11144, -7.37);
 		$podatki['doWyn'][] = new PodatekLiniowyZKwota("dochodowe", "PIT", $komentarz, 0.127, -75);
 		
 		$podatki['odWyn'][] = new PodatekKwotowy("biurokracja", "Mandaty i op³‚aty skarbowe", "Wed³‚ug Rocznika Statystycznego GUS w 2013 r  pobrano 19431 mln z tytu³‚u Op³‚aty, grzywny, odsetki i inne
@@ -223,11 +224,19 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		$wydatki['energia'] = new GrupaWydatkow("Energia", 250/2000);
 		$wydatki['wyposarzenie'] = new GrupaWydatkow("Wyposa¿enie mieszkania", 50/2000);
 		$wydatki['med'] = new GrupaWydatkow("Art. medyczne", 100/2000);
-		$wydatki['benzyna'] = new GrupaWydatkow("Benzyna", 200/2000);
+		$wydatki['benzyna'] = new GrupaWydatkow("Benzyna", 250/2000);
 		$wydatki['sam'] = new GrupaWydatkow("Eksp. samochodu", 50/2000);
 		$wydatki['higieniczne'] = $a = new GrupaWydatkow("Art. higieniczne", 150/2000);
 		return $wydatki;
 	}
+	
+	//function licz
+	
+	function liczOdBrutto(){
+		$this->netto = $this->brutto;
+		liczOdNetto();
+	}
+	
 	
 	function liczOdNetto(){
 		$this->wyniki = array();
@@ -278,7 +287,7 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		$this->wydatkiPod += $this->oszczPod;
 		$this->pNetto = $sumaPNetto + $this->oszczednosci*(1 - $sredniaPod);
 		
-		$this->kosztyPodatkow = $wyn;
+		//$this->kosztyPodatkow = $wyn;
 	}
 }
 

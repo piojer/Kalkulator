@@ -124,7 +124,8 @@ function wiersz2p($tekst, $tekst1, $tekst2){
 $k = new Kalkulator();
 $k->podatki = $k->defaultPodatki($k->wydatki);
 //$k->netto = 2052;
-$k->netto = 2700;
+//$k->netto = 1286.17; // Minimalna krajowa
+$k->netto = 1600;
 $k->liczOdNetto();
 
 // Wyswietlanie
