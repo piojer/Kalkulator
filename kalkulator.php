@@ -1,5 +1,6 @@
 <?php
 function myround($a){
+	if ($a == 0) return $a;
 	$b = round($a);
 	if (abs($b) < 10) {
 		
@@ -140,6 +141,8 @@ class Kalkulator{
 	public $oszczPod;
 	public $wydatkiSuma;
 	public $wydatkiPod;
+	public $procentPodatkow;
+	public $logo;
 	public $wyniki;
 	
 	public function __construct(){
@@ -216,6 +219,20 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		return $podatki;
 	}
 	
+	public function podatkiKORWiN(array &$wydatki){
+		$podatki = $this->emptyPodatki();
+		
+		$vat = new PodatekJakVat("VAT", "Vat 15%", "", 15);
+		$podatkiWZakupach = array($vat);
+		$podatki['odWyn'][] = new PodatekKwotowy("ubezpieczenia", "Prywatne ubezpieczenie medyczne", "",  350);
+		//$wydatki["leczenie"] = new GrupaWydatkow("Ubezpieczenie medyczne", 0);
+		//$wydatki["leczenie"]->kwota = 350;
+		foreach ($wydatki as $k => $g){
+			$wydatki[$k]->podatki = $podatkiWZakupach;
+		}
+		return $podatki;
+	}
+	
 	function defaultWydatki(){
 		$wydatki = array();
 		$wydatki['wynajem'] = new GrupaWydatkow("Wynajem mieszkania/rata kredytu", 700/2000);
@@ -232,11 +249,80 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 	
 	//function licz
 	
-	function liczOdBrutto(){
-		$this->netto = $this->brutto;
-		liczOdNetto();
+	function liczWydatki($netto) {
+		// Liczenie wydatków
+		$sumaPNetto = 0;
+		$sumaNetto = 0;
+		$this->wydatkiSuma = 0;
+		foreach ($this->wydatki as $wyd){
+			if ($wyd->kwotaNetto != 0 && $wyd->kwota == 0) {
+				$k = $wyd->kwotaNetto;
+				$sumaPNetto += $k;
+				foreach (array_reverse($wyd->podatki) as $podatek){
+					$w = $podatek->liczOdwrotnie($k);
+					$k += $w;
+					// TODO: zapisac do grupy podatków
+				}
+				$wyd->kwota = $k;
+				$this->wydatkiPod += $wyd->kwota - $wyd->kwotaNetto;
+				$sumaNetto += $k;
+				$this->wydatkiSuma += $k;
+			} else {
+				if ($wyd->kwota == 0)
+					$wyd->kwota = $k = round($netto*$wyd->kwotaStosunek, -1);
+				else
+					$k = $wyd->kwota;
+				
+				$sumaNetto += $k;
+				$this->wydatkiSuma += $k;
+				foreach ($wyd->podatki as $podatek){
+					$w = $podatek->licz($k);
+					$k -= $w;
+					//echo "Podatek: ",  $podatek->nazwa, " zabiera: ", $w, " zostaje: ", $k;
+					// TODO: zapisac do grupy podatków
+				}
+				$this->wydatkiPod += $wyd->kwota - $k;
+				$wyd->kwotaNetto = $k;
+				$sumaPNetto += $k;
+			}
+		}
+		$sredniaPod = 1 - $sumaPNetto/$sumaNetto;
+		$this->oszczednosci = $netto - $sumaNetto;
+		//if ($this->oszczednosci < 0) $this->oszczednosci = 0;
+		$this->oszczPod = $this->oszczednosci*$sredniaPod;
+		$this->wydatkiSuma += $this->oszczednosci;
+		$this->wydatkiPod += $this->oszczPod;
+		$this->pNetto = $sumaPNetto + $this->oszczednosci*(1 - $sredniaPod);
+		
+		$this->procentPodatkow = (1 - $this->pNetto/$this->pBrutto)*100;
 	}
 	
+	function liczOdPrawdziewBrutto(){
+		$this->wyniki = array();
+		$podPrac = new GrupaWynikow();
+		foreach ($this->podatki['prac'] as $p){
+			$a = $p->licz($this->pBrutto);
+			$podPrac->add($p->nazwa, $a);
+		}
+		$this->wyniki[] = $podPrac;
+		$podDoWyn = new GrupaWynikow();
+		foreach ($this->podatki['doWyn'] as $p){
+			$a = $p->licz($this->pBrutto);
+			$podDoWyn->add($p->nazwa, $a);
+		}
+		$this->wyniki[] = $podDoWyn;
+		$this->brutto = $this->pBrutto - $podPrac->suma;
+		$this->netto = $this->brutto - $podDoWyn->suma;
+		$podOdWyn =  new GrupaWynikow();
+		foreach ($this->podatki['odWyn'] as $p){
+			$a = $p->licz($this->netto);
+			$podOdWyn->add($p->nazwa, $a);
+		}
+		$this->wyniki[] = $podOdWyn;
+		$netto = $this->netto - $podOdWyn->suma;
+		
+		$this->liczWydatki($netto);
+	}
 	
 	function liczOdNetto(){
 		$this->wyniki = array();
@@ -262,32 +348,16 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		$this->wyniki[] = $podOdWyn;
 		$netto = $this->netto - $podOdWyn->suma;
 		
-		// Liczenie wydatków
-		$sumaPNetto = 0;
-		$sumaNetto = 0;
-		$this->wydatkiSuma = 0;
-		foreach ($this->wydatki as $wyd){
-			$wyd->kwota = $k = round($netto*$wyd->kwotaStosunek, -1);
-			$sumaNetto += $k;
-			$this->wydatkiSuma += $k;
-			foreach ($wyd->podatki as $podatek){
-				$w = $podatek->licz($k);
-				$k -= $w;
-				//echo "Podatek: ",  $podatek->nazwa, " zabiera: ", $w, " zostaje: ", $k;
-				// TODO: zapisac do grupy podatków
-			}
-			$this->wydatkiPod += $wyd->kwota - $k;
-			$wyd->kwotaNetto = $k;
-			$sumaPNetto += $k;
+		$this->liczWydatki($netto);
+	}
+	
+	function copy() {
+		$k = new Kalkulator();
+		$k->pBrutto = $this->pBrutto;
+		foreach ($this->wydatki as $key => $wyd){
+			$k->wydatki[$key]->kwotaNetto = $wyd->kwotaNetto;
 		}
-		$sredniaPod = 1 - $sumaPNetto/$sumaNetto;
-		$this->oszczednosci = $netto - $sumaNetto;
-		$this->oszczPod = $this->oszczednosci*$sredniaPod;
-		$this->wydatkiSuma += $this->oszczednosci;
-		$this->wydatkiPod += $this->oszczPod;
-		$this->pNetto = $sumaPNetto + $this->oszczednosci*(1 - $sredniaPod);
-		
-		//$this->kosztyPodatkow = $wyn;
+		return $k;
 	}
 }
 

@@ -39,6 +39,7 @@
 	.dodatek {color:rgb(150,90,100); font-size:small;}
 	tbody.naglowek {font-size:small;}
 	tbody.naglowek td {font-size:small;padding-left:15}
+	img {width:200;height:180;}
 </style>
 </head><body>
 <?php
@@ -106,60 +107,176 @@ function wypiszInputy(){
 
 
 function wiersz($tekst, $kwota){
+	//echo "wiersz($tekst, $kwota)\n";
 	echo "<tr><td>$tekst</td><td colspan = \"2\">".myround($kwota)." z³</td></tr>";
 }
 
 function wiersz2($tekst, $kwota, $kwota2){
+	//echo "wiersz2($tekst, $kwota, $kwota2\n";
 	echo "<tr><td>$tekst</td><td>".myround($kwota)." z³</td><td class='dodatek'><div class='dodatek'>".myround($kwota2)." z³</div></td></tr>";
 }
 function wiersz2p($tekst, $tekst1, $tekst2){
+	//echo "wiersz2p($tekst, $tekst1, $tekst2)";
 	echo "<tr><td>$tekst</td><td>$tekst1</td><td class='dodatek'><div class='dodatek'>$tekst2</div></td></tr>";
 }
 
+function wiersza($tekst, $a, $pole, $post = ' z³'){
+	echo "<tr><td>$tekst</td>";
+	foreach ($a as $k){
+		echo "<td colspan = \"2\">".myround($k->$pole)."$post</td>";
+	}
+	echo "</tr>";
+}
+function wiersz2a($tekst, $a, $pole, $pole2){
+	echo "<tr><td>$tekst</td>";
+	foreach ($a as $k){
+		echo "<td>".myround($k->$pole)." z³</td></td><td class='dodatek'><div class='dodatek'>".myround($k->$pole2)." z³</div></td>";
+	}
+	echo "</tr>";
+}
+function wierszWyniki($tekst, $id, $a, $idx){
+	if ($tekst != ""){
+		$vis = "visibility='hidden'";
+		echo "<tr><td>$tekst ". rozwiniecie($id) ."</td>";
+		foreach ($a as $k){
+			echo "<td colspan = \"2\">".myround($k->wyniki[$idx]->suma)." z³</td>";
+		}
+		echo "</tr>";
+	}
+	else {
+		$vis = "style='display:table-row-group;visibility:visible'";
+	}
+	echo "<tbody class='rozwiniecie' id='$id' $vis>";
+	$keys = array();
+	foreach ($a as $k){
+		$kk = array_keys($k->wyniki[$idx]->czastkowe);
+		$keys = array_unique(array_merge($kk, $keys));
+	}
+	foreach ($keys as $nazwa) {
+		echo "<tr><td>$nazwa</td>";
+		foreach ($a as $k){
+			if (isset($k->wyniki[$idx]) && isset($k->wyniki[$idx]->czastkowe[$nazwa]))
+				echo "<td colspan = \"2\">".myround($k->wyniki[$idx]->czastkowe[$nazwa])." z³</td>";
+			else
+				echo "<td colspan = \"2\">0 z³</td>";
+		}
+		echo "</tr>";
+	}
+	echo "</tbody>";
+}
 
+function wiersz2pA($tekst, $tekst1, $tekst2, $count){
+	echo "<tr><td>$tekst</td>";
+	for ($i = 0; $i < $count; ++$i){
+		echo "<td>$tekst1</td><td class='dodatek'><div class='dodatek'>$tekst2</div></td>";
+	}
+	echo "</tr>";
+}
 
+function wiersz2wydatki($nazwa, $a, $key){
+	echo "<tr><td>$nazwa</td>";
+	foreach ($a as $k){
+		$wyd = $k->wydatki[$key];
+		$kw = myround($wyd->kwota);
+		$pod = myround($wyd->kwota - $wyd->kwotaNetto);
+		echo "<td>$kw z³</td><td class='dodatek'><div class='dodatek'>$pod z³</div></td>";
+	}
+	echo "</tr>";
+}
+
+function wierszLinia(){
+	echo "<tr><td colspan = \"100\"><hr/></td></tr>";
+}
 
 //Inicjowanie 
 /////////////////////////////////////////////////////////////
 $k = new Kalkulator();
 $k->podatki = $k->defaultPodatki($k->wydatki);
+//$k->podatki = $k->podatkiKORWiN($k->wydatki);
 //$k->netto = 2052;
 //$k->netto = 1286.17; // Minimalna krajowa
 $k->netto = 1600;
+
+
 $k->liczOdNetto();
+$k2 = $k->copy();
+$k2->podatki = $k2->podatkiKORWiN($k2->wydatki);
+$k2->liczOdPrawdziewBrutto();
+
+$k->logo = 'po_logo.jpg';
+$k2->logo = 'korwin.jpg';
 
 // Wyswietlanie
 ///////////////////////////////////////////////////////////
+function wyswietl1($k) {
+	echo "<table class='ramka'>";
+	wiersz("P³aci pracodawca<br/><b>(prawdziwe brutto)</b>", $k->pBrutto);
+	wiersz("Koszty pracodawcy ZUS " . rozwiniecie('pracod'), $k->wyniki[0]->suma); // "Koszty pracodawcy "
+	echo "<tbody class='rozwiniecie' id='pracod' visibility='hidden'>";
+	foreach ($k->wyniki[0]->czastkowe as $nazwa => $wartosc)
+		wiersz($nazwa, $wartosc);
+	echo "</tbody>";
+	wiersz("Brutto", $k->brutto);
+	wiersz("Sk³adki na ZUS " . rozwiniecie('pracow'), $k->wyniki[1]->suma); //"Sk³adki po stronie pracownika "
+	echo "<tbody class='rozwiniecie' id='pracow' visibility='hidden'>";
+	foreach ($k->wyniki[1]->czastkowe as $nazwa => $wartosc)
+		wiersz($nazwa, $wartosc);
+	echo "</tbody>";
+	wiersz("Netto", $k->netto);
+	foreach ($k->wyniki[2]->czastkowe as $nazwa => $wartosc)
+		wiersz($nazwa, $wartosc);
+	echo "<tbody class='naglowek'>";
+	wiersz2p("Przyk³adowe wydatki:", "koszt", "w tym<br/>podatki");
+	echo "</tbody>";
 
-echo "<table class='ramka'>";
-wiersz("P³aci pracodawca<br/><b>(prawdziwe brutto)</b>", $k->pBrutto);
-wiersz("Koszty pracodawcy ZUS " . rozwiniecie('pracod'), $k->wyniki[0]->suma); // "Koszty pracodawcy "
-echo "<tbody class='rozwiniecie' id='pracod' visibility='hidden'>";
-foreach ($k->wyniki[0]->czastkowe as $nazwa => $wartosc)
-	wiersz($nazwa, $wartosc);
-echo "</tbody>";
-wiersz("Brutto", $k->brutto);
-wiersz("Sk³adki na ZUS " . rozwiniecie('pracow'), $k->wyniki[1]->suma); //"Sk³adki po stronie pracownika "
-echo "<tbody class='rozwiniecie' id='pracow' visibility='hidden'>";
-foreach ($k->wyniki[1]->czastkowe as $nazwa => $wartosc)
-	wiersz($nazwa, $wartosc);
-echo "</tbody>";
-wiersz("Netto", $k->netto);
-foreach ($k->wyniki[2]->czastkowe as $nazwa => $wartosc)
-	wiersz($nazwa, $wartosc);
-echo "<tbody class='naglowek'>";
-wiersz2p("Przyk³adowe wydatki:", "koszt", "w tym<br/>podatki");
-echo "</tbody>";
 
-
-foreach ($k->wydatki as $wyd){
-	wiersz2($wyd->nazwa, $wyd->kwota, $wyd->kwota - $wyd->kwotaNetto);
+	foreach ($k->wydatki as $wyd){
+		wiersz2($wyd->nazwa, $wyd->kwota, $wyd->kwota - $wyd->kwotaNetto);
+	}
+	wiersz2("Oszczêdno¶ci", $k->oszczednosci, $k->oszczPod);
+	wiersz2("Suma", $k->wydatkiSuma, $k->wydatkiPod);
+	wiersz("<b>Prawdziwe netto</b>", $k->pNetto);
+	wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $k->pNetto/$k->pBrutto)).'%', "");
+	echo "</table>";
 }
-wiersz2("Oszczêdno¶ci", $k->oszczednosci, $k->oszczPod);
-wiersz2("Suma", $k->wydatkiSuma, $k->wydatkiPod);
-wiersz("<b>Prawdziwe netto</b>", $k->pNetto);
-wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $k->pNetto/$k->pBrutto)).'%', "");
-echo "</table>";
+
+function wyswietlKilka(array $a) {
+	echo "<table class='ramka'>";
+	//Wyswietlanie loga
+	echo "<tr><td></td>";
+	foreach ($a as $k){
+		$l = $k->logo;
+		echo "<td colspan = '2'><img src='$l'/></td>";
+	}
+	echo "</tr>";
+	wiersza("P³aci pracodawca<br/><b>(prawdziwe brutto)</b>", $a, 'pBrutto');
+	wierszWyniki("Koszty pracodawcy ZUS ", 'pracod', $a, 0);
+	wiersza("Brutto", $a, 'brutto');
+	wierszWyniki("Sk³adki na ZUS ", 'pracow', $a, 1);
+	wiersza("Netto", $a, 'netto');
+	wierszWyniki("","dodatkowe", $a, 2);
+	//echo "<tbody class='naglowek'>";
+	wiersz2pA("Przyk³adowe wydatki:", "koszt", "w tym<br/>podatki", count($a));
+	//echo "</tbody>";
+
+	wierszLinia();
+	foreach ($a[0]->wydatki as $key => $wyd){
+		wiersz2wydatki($wyd->nazwa, $a, $key);
+	}
+	
+	wiersz2a("Oszczêdno¶ci", $a, 'oszczednosci', 'oszczPod');
+	wierszLinia();
+	wiersz2a("Suma", $a, 'wydatkiSuma', 'wydatkiPod');
+	wiersza("<b>Prawdziwe netto</b>", $a, 'pNetto');
+	wiersza("Suma podatków, op³at, itp.", $a, 'procentPodatkow', '%');
+	//wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $k->pNetto/$k->pBrutto)).'%', "");
+	
+	echo "</table>";
+
+}
+wyswietlKilka(array($k, $k2));
+//wyswietl1($k);
+//wyswietl1($k2);
 
 // 286 roboczogodzin roczie na dope³nienie obowi±zków zwi±zanych z podatkami: https://www.facebook.com/czerwonatasma/photos/a.395300367316115.1073741828.370459393133546/435449533301198/?type=1&fref=nf
 // 286 rh / 160*12 = 15% czasu przedsiembiorcy
