@@ -4,7 +4,11 @@
 		document.getElementById('komentarz').innerHTML = text;
 	}
 	function pokarze(id){
-		document.getElementById('komentarz').innerHTML = document.getElementById(id).innerHTML+"\n\n\n";
+		document.getElementById('komentarz').innerHTML = document.getElementById(id).innerHTML;
+		document.getElementById('komentarz').style.display = 'block';
+	}
+	function pokarzout(){
+		document.getElementById('komentarz').style.display = 'none';
 	}
 	function rozwin(id, kogo){
 		a = document.getElementById(id);
@@ -28,6 +32,30 @@
 		}//*/
 	}
 </script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart(id, percent) {
+		var percent2 = 100 - percent;
+        var data = google.visualization.arrayToDataTable([
+          ['Task', 'Percentage'],
+		  ['Pañstwo', percent],
+          ['Obywatel', percent2]
+          
+        ]);
+ 
+        var options = {
+          title: '',
+		  backgroundColor: 'rgb(19,44,75)',
+		  legend: {position:'none'},
+		  slices: {1:{color:'green'}, 0:{color:'red'}}
+        };
+ 
+        var chart = new google.visualization.PieChart(document.getElementById(id));
+        chart.draw(data, options);
+      }
+</script>
 <style>
 	td, th {padding:1px 10px}
 	td.kwota {width:60}
@@ -41,10 +69,35 @@
 	tbody.naglowek td {font-size:small;padding-left:15}
 	img {width:150;height:125;}
 	input {width:120}
+	wykres {width:120;height:120}
+	.komentarz {
+		position:absolute;
+		left: 50%;
+		top: 5%;
+		width: 45%;
+		height: 90%;
+		display: none;
+	}
+	.komentarz_tresc {display:none;visibility:hidden;position:absolute}
 </style>
 </head><body>
 <?php
+//position: absolute;
 include "kalkulator.php";
+
+
+
+
+$nrDoKomentarz=0;
+function komentarz($tekst, $komentarz){
+	global $nrDoKomentarz;
+	$a = "<div class='komentarz_tresc' id='k$nrDoKomentarz'>$komentarz</div>";
+	$mouse = "onmouseover=\"pokarze('k$nrDoKomentarz')\" onmouseout=\"pokarzout()\"";
+	
+	++$nrDoKomentarz;
+	return "<div $mouse>$tekst</div>$a";
+	//return $tekst;
+}
 
 function rozwiniecie($id){
 	return "<a id='przyc_$id' class='rozwiniecie' onclick='rozwin(\"$id\", \"przyc_$id\")'>(+)</a>";
@@ -124,10 +177,14 @@ function wiersz2p($tekst, $tekst1, $tekst2){
 	echo "<tr><td>$tekst</td><td>$tekst1</td><td class='dodatek'><div class='dodatek'>$tekst2</div></td></tr>";
 }
 
-function wiersza($tekst, $a, $pole, $post = ' z³', $dod = ''){
+function wiersza($tekst, $a, $pole, $komentarz = '', $post = ' z³', $dod = ''){
 	echo "<tr><td>$tekst</td>";
 	foreach ($a as $k){
-		echo "<td colspan = \"2\">".myround($k->$pole)."$post $dod</td>";
+		if ($komentarz != "")
+			$v = komentarz(myround($k->$pole).$post, $komentarz);
+		else
+			$v = myround($k->$pole).$post;
+		echo "<td colspan = \"2\">$v $dod</td>";
 		$dod = '';
 	}
 	echo "</tr>";
@@ -185,8 +242,16 @@ function wiersz2wydatki($nazwa, $a, $key){
 	foreach ($a as $k){
 		$wyd = $k->wydatki[$key];
 		$kw = myround($wyd->kwota);
-		$pod = myround($wyd->kwota - $wyd->kwotaNetto);
-		echo "<td>$kw z³</td><td class='dodatek'><div class='dodatek'>$pod z³</div></td>";
+		$pod = myround($wyd->kwota - $wyd->kwotaNetto) . ' z³';
+		$kom = "<h2>$nazwa</h2>";
+		$kom .= "<table><tr><td>brutto:</td><td>$kw z³</td></td></tr>";
+		foreach($wyd->wyniki->czastkowe as $nazwa => $v){
+			$kom .= "<tr><td>$nazwa</td><td>".myround($v)." z³</td></td></tr>";
+		}
+		$kom .= "<tr><td>Prawdziwa warto¶æ</td><td>".myround($wyd->kwotaNetto)." z³</td></td></tr>";
+		$kom .= "</table>";
+		$pod = komentarz($pod, $kom);
+		echo "<td>$kw z³</td><td class='dodatek'><div class='dodatek'>$pod</div></td>";
 	}
 	echo "</tr>";
 }
@@ -265,9 +330,10 @@ function wyswietlKilka(array $a) {
 	wierszWyniki("Koszty pracodawcy ZUS ", 'pracod', $a, 0);
 	wiersza("Brutto", $a, 'brutto');
 	wierszWyniki("Sk³adki na ZUS ", 'pracow', $a, 1);
-	wiersza("Netto", $a, 'netto', 'z³ ', rozwiniecie('netto'));
+	wiersza("Netto", $a, 'netto', '', 'z³ ', rozwiniecie('netto'));
 	echo "<tbody class='rozwiniecie' id='netto'>";
 	wierszp("umowa o pracê", "<input type='text' name='netto' value='{$a[0]->netto}'/> z³");
+	//wierszp("widok", "<select name='widok'><option value='domyslny'>domy¶lny</option><option value='pelny'>pe³ny</option><option value='zwarty'>zwarty</option></select>");
 	wierszp("", "<input type='submit'  value='zmieñ'/>");
 	echo "</tbody>";
 	wierszWyniki("","dodatkowe", $a, 2);
@@ -278,6 +344,7 @@ function wyswietlKilka(array $a) {
 
 	wierszLinia();
 	foreach ($a[0]->wydatki as $key => $wyd){
+		
 		wiersz2wydatki($wyd->nazwa, $a, $key);
 	}
 	
@@ -286,11 +353,27 @@ function wyswietlKilka(array $a) {
 	wiersz2a("RAZEM:", $a, 'wydatkiSuma', 'wydatkiPod');
 	wierszPrzerwa();
 	wiersza("<b>Prawdziwe netto</b>", $a, 'pNetto');
-	wiersza("Suma podatków, op³at, itp.", $a, 'procentPodatkow', '%');
+	wiersza("Suma podatków, op³at, itp.", $a, 'procentPodatkow', '', '%');
 	//wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $k->pNetto/$k->pBrutto)).'%', "");
 	
+	
+	// Wykresy
+	echo "<tr><td></td>";
+	$i = 0;
+	foreach ($a as $k){
+		$l = $k->logo;
+		$i++;
+		echo "<td colspan = '2'><div class='wykres' id='id$i'></div></td>";
+		$pr = myround($k->procentPodatkow);
+		echo "<script> drawChart('id$i', $pr); </script>";
+	}
+	echo "</tr>";
+	wiersza("Miesiêczny zysk", $a, 'zysk');
+	wiersza("Za swoje wynagrodzenie kupisz", $a, 'ilePWiecej', '', '% <br/> wiêcej');
 	echo "</table></form>";
-
+	echo "<div class='komentarz' id='komentarz'></div>";
+	
+	
 }
 wyswietlKilka(array($k, $k2));
 //wyswietl1($k);

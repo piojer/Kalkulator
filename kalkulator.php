@@ -96,6 +96,7 @@ class GrupaWydatkow{
 	public $kwotaStosunek;
 	public $kwota;
 	public $kwotaNetto;
+	public $wyniki;
 	//public $komentarz;
 	/*public function __construct($nazwa, $podatki, $kwotaStosunek){
 		$this->nazwa = $nazwa; 
@@ -113,6 +114,7 @@ class GrupaWydatkow{
 		$this->kwotaStosunek = $kwotaStosunek;
 		$this->kwota = 0;
 		$this->kwotaNetto = 0;
+		$this->wyniki = new GrupaWynikow();
 	}
 }
 
@@ -144,6 +146,9 @@ class Kalkulator{
 	public $procentPodatkow;
 	public $logo;
 	public $wyniki;
+	public $pNettoPierwszego;
+	public $zysk;
+	public $ilePWiecej;
 	
 	public function __construct(){
 		$this->podatki = $this->emptyPodatki();
@@ -153,6 +158,9 @@ class Kalkulator{
 		$this->pBrutto = 0;
 		$this->pNetto = 0;
 		$this->kosztyPodatkow = array();
+		$this->pNettoPierwszego = 0;
+		$this->zysk = 0;
+		$this->ilePWiecej = 0;
 	}
 	
 	public function emptyPodatki(){
@@ -263,8 +271,10 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 				foreach (array_reverse($wyd->podatki) as $podatek){
 					$w = $podatek->liczOdwrotnie($k);
 					$k += $w;
+					$wyd->wyniki->add($podatek->nazwa, $w);
 					// TODO: zapisac do grupy podatków
 				}
+				$wyd->wyniki->czastkowe = array_reverse($wyd->wyniki->czastkowe, true);
 				$wyd->kwota = $k;
 				$this->wydatkiPod += $wyd->kwota - $wyd->kwotaNetto;
 				$sumaNetto += $k;
@@ -280,6 +290,7 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 				foreach ($wyd->podatki as $podatek){
 					$w = $podatek->licz($k);
 					$k -= $w;
+					$wyd->wyniki->add($podatek->nazwa, $w);
 					//echo "Podatek: ",  $podatek->nazwa, " zabiera: ", $w, " zostaje: ", $k;
 					// TODO: zapisac do grupy podatków
 				}
@@ -297,6 +308,11 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		$this->pNetto = $sumaPNetto + $this->oszczednosci*(1 - $sredniaPod);
 		
 		$this->procentPodatkow = (1 - $this->pNetto/$this->pBrutto)*100;
+		
+		if ($this->pNettoPierwszego  != 0) {
+			$this->zysk = $this->pNetto - $this->pNettoPierwszego;
+			$this->ilePWiecej = $this->zysk/$this->pNettoPierwszego*100;
+		}
 	}
 	
 	function liczOdPrawdziewBrutto(){
@@ -359,6 +375,11 @@ dochody niepodatkowe. T± kwotê™ dzielimy na 31 mln doros³‚ych ludzi (https://pl.
 		foreach ($this->wydatki as $key => $wyd){
 			$k->wydatki[$key]->kwotaNetto = $wyd->kwotaNetto;
 		}
+		if ($this->pNettoPierwszego != 0) 
+			$k->pNettoPierwszego = $this->pNettoPierwszego;
+		else 
+			$k->pNettoPierwszego = $this->pNetto;
+		
 		return $k;
 	}
 }
