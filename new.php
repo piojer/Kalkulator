@@ -36,20 +36,27 @@
 <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
-      function drawChart(id, percent) {
-		var percent2 = 100 - percent;
+      function drawChart(id, percent, percent1, percent2, percent3) {
+		var percentOth = 100 - percent;
+		percentOth = Math.round(percentOth*10)/10;
+		percent = percent - percent1 - percent2 - percent3;
+		percent = Math.round(percent*10)/10;
         var data = google.visualization.arrayToDataTable([
           ['Task', 'Percentage'],
 		  ['Pañstwo', percent],
-          ['Obywatel', percent2]
-          
+		  ['Korporacje', percent1],
+		  ['Zmarnowane', percent2],
+		  ['Prywatny ubezpieczyciel', percent3],
+          ['Obywatel', percentOth]
         ]);
  
         var options = {
           title: '',
 		  backgroundColor: 'rgb(19,44,75)',
 		  legend: {position:'none'},
-		  slices: {1:{color:'green'}, 0:{color:'red'}}
+		  slices: {0:{color:'red'}, 1:{color:'yellow'}, 2:{color:'orange'}, 3:{color:'blue'}, 4:{color:'green'}},
+		  chartArea: {left:5,top:5,width:'110',height:'110'},
+		  height: '120'
         };
  
         var chart = new google.visualization.PieChart(document.getElementById(id));
@@ -69,20 +76,39 @@
 	tbody.naglowek td {font-size:small;padding-left:15}
 	img {width:150;height:125;}
 	input {width:120}
-	wykres {width:120;height:120}
+	wykres {width:100;height:60}
 	.komentarz {
 		position:absolute;
 		left: 50%;
 		top: 5%;
 		width: 45%;
-		height: 90%;
+		padding: 10px;
+		background-color: yellow;
 		display: none;
 	}
 	.komentarz_tresc {display:none;visibility:hidden;position:absolute}
 </style>
 </head><body>
 <?php
-//position: absolute;
+//position: absolute; height: 90%;
+/*function drawChart2(id, params) {
+		var percent2 = 100 - percent;
+		//window.alert("id: " + id);
+        var data = google.visualization.arrayToDataTable(params);
+		//window.alert("params: " + params);
+		
+        var options = {
+          title: '',
+		  backgroundColor: 'rgb(19,44,75)',
+		  legend: {position:'none'},
+		  slices: {1:{color:'green'}, 0:{color:'red'}}
+        };
+ 
+        var chart = new google.visualization.PieChart(document.getElementById(id));
+        chart.draw(data, options);
+      }
+	  */
+
 include "kalkulator.php";
 
 
@@ -184,6 +210,23 @@ function wiersza($tekst, $a, $pole, $komentarz = '', $post = ' z³', $dod = '', $
 			$v = komentarz($prefix.myround($k->$pole).$post, $komentarz);
 		else
 			$v = $prefix.myround($k->$pole).$post;
+		echo "<td colspan = \"2\">$v $dod</td>";
+		$dod = '';
+	}
+	echo "</tr>";
+}
+
+function wiersza0($tekst, $a, $pole, $komentarz = '', $post = ' z³', $dod = '', $prefix = ''){
+	echo "<tr><td>$tekst</td>";
+	
+	foreach ($a as $k){
+		$w = myround($k->$pole);
+		if ($w == 0) {
+			$v = ''; $dod = '';
+		} else 	if ($komentarz != "")
+			$v = komentarz($prefix.$w.$post, $komentarz);
+		else
+			$v = $prefix.$w.$post;
 		echo "<td colspan = \"2\">$v $dod</td>";
 		$dod = '';
 	}
@@ -329,10 +372,11 @@ function wyswietlKilka(array $a) {
 	wiersza("P³aci pracodawca<br/><b>(prawdziwe brutto)</b>", $a, 'pBrutto');
 	wierszWyniki("Koszty pracodawcy ZUS ", 'pracod', $a, 0);
 	wiersza("Brutto", $a, 'brutto');
-	wierszWyniki("Sk³adki na ZUS ", 'pracow', $a, 1);
+	wierszWyniki("Sk³adki na ZUS i PIT ", 'pracow', $a, 1);
 	wiersza("Netto", $a, 'netto', '', 'z³ ', rozwiniecie('netto'));
 	echo "<tbody class='rozwiniecie' id='netto'>";
 	wierszp("umowa o pracê", "<input type='text' name='netto' value='{$a[0]->netto}'/> z³");
+	wierszp("inne umowy", "bêd± wkrótce :)");
 	//wierszp("widok", "<select name='widok'><option value='domyslny'>domy¶lny</option><option value='pelny'>pe³ny</option><option value='zwarty'>zwarty</option></select>");
 	wierszp("", "<input type='submit'  value='zmieñ'/>");
 	echo "</tbody>";
@@ -344,7 +388,6 @@ function wyswietlKilka(array $a) {
 
 	wierszLinia();
 	foreach ($a[0]->wydatki as $key => $wyd){
-		
 		wiersz2wydatki($wyd->nazwa, $a, $key);
 	}
 	
@@ -353,9 +396,8 @@ function wyswietlKilka(array $a) {
 	wiersz2a("RAZEM:", $a, 'wydatkiSuma', 'wydatkiPod');
 	wierszPrzerwa();
 	wiersza("<b>Prawdziwe netto</b>", $a, 'pNetto');
-	wiersza("Suma podatków, op³at, itp.", $a, 'procentPodatkow', '', '%');
-	//wiersz2p("Suma podatków, op³at, itp.", myround(100*(1- $k->pNetto/$k->pBrutto)).'%', "");
-	
+	wiersza("Suma podatków, op³at, itp.", $a, 'sumaPodatkow');
+	wiersza(" procentowo", $a, 'procentPodatkow', '', '%');
 	
 	// Wykresy
 	echo "<tr><td></td>";
@@ -365,15 +407,20 @@ function wyswietlKilka(array $a) {
 		$i++;
 		echo "<td colspan = '2'><div class='wykres' id='id$i'></div></td>";
 		$pr = myround($k->procentPodatkow);
-		echo "<script> drawChart('id$i', $pr); </script>";
+		$gr = $k->grupyProcentowo;
+		//$pr = myround($gr['Pañstwo']);
+		if (isset($gr['Korporacje'])) $pr1 = myround($gr['Korporacje']); else $pr1 = 0;
+		if (isset($gr['Zmarnowane'])) $pr2 = myround($gr['Zmarnowane']); else $pr2 = 0;
+		if (isset($gr['Prywatny ubezpieczyciel'])) $pr3 = myround($gr['Prywatny ubezpieczyciel']); else $pr3 = 0;
+		echo "<script> drawChart('id$i', $pr, $pr1, $pr2, $pr3); </script>";
+		//$parms = $k->getGoogleChartParams();
+		//$echo "<script> drawChart2('id$i', '$parms'); </script>";
 	}
 	echo "</tr>";
-	wiersza("Miesiêczny zysk", $a, 'zysk');
-	wiersza("Za swoje wynagrodzenie kupisz", $a, 'ilePWiecej', '', '% wiêcej', '', 'o ');
+	wiersza0("Miesiêczny zysk", $a, 'zysk');
+	wiersza0("Za swoje wynagrodzenie kupisz", $a, 'ilePWiecej', '', '% wiêcej', '', 'o ');
 	echo "</table></form>";
 	echo "<div class='komentarz' id='komentarz'></div>";
-	
-	
 }
 wyswietlKilka(array($k, $k2));
 //wyswietl1($k);
